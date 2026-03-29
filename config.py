@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
 
-
+load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 if not GEMINI_API_KEY:
@@ -30,7 +30,7 @@ llm_judge = ChatGoogleGenerativeAI(
 # 3. Scorer Agent (Evaluator Phase 2)
 # Yêu cầu: Nhiệt độ (0.0), dùng mô hình nhẹ hơn để đánh giá quy mô lớn tiết kiệm chi phí.
 llm_scorer = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash-8b", 
+    model="gemini-2.5-flash", 
     temperature=0.0,
     api_key=GEMINI_API_KEY
 )
