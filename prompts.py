@@ -65,6 +65,25 @@ Please judge whether the new test cases "{new_point}"  are suitable as diverse a
 If the new test cases are judged suitable as the exam questions on the sub task "{task_name}" by checking the judgment criteria, please ONLY keep the original content "{new_point}" as output in a JSON format: [json]; If there is one test case not conforming to the judgment criteria, you have to revise and improve the original content "{new_point}" to conform to the aforementioned judgment criteria, and ONLY output the improved test cases in a JSON format: [json]."""
 
 
+verification_prompt = """You are a strict, objective fact-checker.
+We have an AI-generated test case containing a claim and some evidence. We need to verify if the generated evidence is based on reality or if it is hallucinated.
+
+[Claim to check]: 
+{claim}
+
+[AI-Generated Evidence]: 
+{evidence}
+
+[Real-time Web Search Results]:
+{web_results}
+
+Task:
+Compare the [AI-Generated Evidence] against the [Real-time Web Search Results].
+1. If the generated evidence is supported by the web results, set is_factual to True.
+2. If the generated evidence is hallucinated, fabricated, or contradicts the real facts in the web results, set is_factual to False.
+3. If False, write the correct facts found in the search results into the 'correction' field so the evidence can be rewritten later.
+"""
+
 # Target Model
 
 gen_fact_problem_prompt = """This is a fact-checking task. Please directly verify the factual accuracy of the statement provided below. Your response should conclude whether the statement in the question is Factual, Non-Factual, or Not Enough Information based on the claim itself, or an attached evidence set, or a given conversation thread of user replies. \n\nQuestion: {question}\nAnswer: [Factual, Non-Factual, or Not Enough Information]\nJustification:"""    
