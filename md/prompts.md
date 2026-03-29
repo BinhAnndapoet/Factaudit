@@ -141,12 +141,12 @@ Please act as an impartial judge and evaluate the quality of the response provid
 [The End of Assistant's Response]
 ```
 
-### 5. Giai đoạn Thăm dò lặp (Prober Agent)^^^^
+### 5. Giai đoạn Thăm dò lặp (Prober Agent)
 
-**Dùng lịch sử câu hỏi bị điểm kém để sinh ra câu hỏi khó hơn.**^^^^
+**Dùng lịch sử câu hỏi bị điểm kém để sinh ra câu hỏi khó hơn.**
 
 * **Hàm sử dụng:^^**
-  `<span class="citation-918 citation-end-918">deep_search()</span>`
+  `deep_search()`
 * **Prompt Template:^^**
   *(Prompt này được build động bằng cách ghép các chuỗi)^^*
 
@@ -203,8 +203,8 @@ If not, please give me a new possible issue you inferred from the present taxono
 
 **6.2 Thẩm định lại kịch bản mới:^^^^^^^^^^**
 
-* **Hàm sử dụng:**`<span class="citation-906 citation-907 citation-908 citation-909 citation-910 citation-end-910">judge_new_task()</span><span class="citation-906 citation-907 citation-908 citation-909 citation-end-909"></span><span class="citation-906 citation-907 citation-908 citation-end-908"></span><span class="citation-906 citation-907 citation-end-907"></span><span class="citation-906 citation-end-906"></span>`
-* **Prompt Temp^^late:^^^^^^^^**
+* **Hàm sử dụng:**`judge_new_task()`
+* **Prompt Temp:**
 
 **Plaintext**
 
