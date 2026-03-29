@@ -1,3 +1,30 @@
+# Appraiser Agent
+
+analysis_prompt = """Fact-checking is an important capability of LLMs, where the LLM should analyze textual information to identify the factuality of the source claim. Here, the LLM must be tested to accurately assess the factuality of the information presented within the source claim according to the claim itself or the auxiliary information.
+
+Here is a sub task's taxonomy as well as the averaged score on these tasks(lower means worse performance):
+{taxonomy}
+
+And here are some bad cases:
+{bad_cases}
+Based on the given information, please judge if the taxonomy is comprehensive, if so please just output [[Stop]]. 
+
+If not, please give me a new possible issue you inferred from the present taxonomy and bad cases. Please focus on {main_task}. Ensure the new task is text-only (no multimodal). Also give a brief explanation of how you find the issue. Please output in a JSON format: {"task_name": ..., "explanation":...}"""
+
+
+judge_new_task_prompt = """Fact-checking is an important capability of LLMs, where the LLM should analyze textual information to identify the factuality of the source claim. Here, the LLM must be tested to accurately assess the factuality of the information presented within the source claim according to the claim itself or the auxiliary information.
+
+Here is a sub task's taxonomy on the task "{main_task}":
+{taxonomy}
+
+Based on the given taxonomy, please judge whether the new test point "{new_point}" is suitable as a sub task on the task "{main_task}". The judge criteria are as follows:
+1. The new test point should precisely cover an important and meaningful part of the main task.
+2. The new test point should be sufficiently different from the existing test points.
+3. The new test point should be text-only (no multimodal).
+
+If the new test point "{new_point}" is suitable as a sub task on the task "{main_task}", please ONLY output [[Yes]]. If not, please first output [[No]], and then provide the reason why it's not suitable as a sub task on the task "{main_task}"."""
+
+
 # Inquirer Agent
 
 gen_seed_prompt = """Fact-checking is an important capability of LLMs, where the LLM should analyze textual information to identify the factuality of the source claim. Here, you need to ask the LLM to be tested to accurately assess the factuality of the information presented within the source claim according to the claim itself or the auxiliary information.
@@ -60,3 +87,26 @@ get_llm_score_prompt = """You are a helpful assistant.", "prompt_template": "[In
 
 
 # Prober Agent
+
+deep_search_prompt = """This task involves generating test cases for the fact-checking task. Fact-checking is an important capability of LLMs, where the LLM should analyze textual information to identify the factuality of the source claim. Here, you need to ask the LLM to be tested to accurately assess the factuality of the information presented with the claim itself, or auxiliary information.
+Previous Prompts:
+
+{previous_prompts}
+
+The objective is to create new prompts that are challenging for the language model, with a focus on diverse types of instructions about "{task_name}". Each prompt should be solvable by a language model completely, and aimed at achieving a lower score (indicating difficulty and complexity).
+
+Guidelines for Creating New Prompts:
+
+1. Each prompt to be fact-checked should be solvable by a language model (no visual task) and should contain all necessary information.
+2. Understand how factuality in the Prompt is discerned by the tested model as shown in its Answer and the comment on the score.
+3. Aim for prompts that would result in a low score (less than 3.0), indicating a high level of complexity and difficulty of the question that requires more effort to identity the factuality or misinformation.
+4. Do not repeat topics across different instructions in the previous prompts to maximize diversity.
+5. The key_point should be no more than 15 words and summarize the key points of the prompt to clearly state the target content to be fact-checked.
+6. The test_mode should be one of the three options: 1) [claim], (i.e., only the source claim), or 2) [evidence], (i.e., additional contrastive evidence based on Wikipedia), or 3) [wisdom of crowds], (i.e., user comments on social media).
+7. The auxiliary_info should be provided accoriding to the test_mode: if not the [claim] mode is selected, generate the auxiliary information "auxiliary_info" for the source claim. If else, "auxiliary_info" is empty. 
+ For "auxiliary_info" of [evidence], please ensure that: 1) more than three pieces of evidence are in "auxiliary_info", and 2) the provided pieces of detailed evidence in "auxiliary_info" must only be ground truth equoted directly and solely from Wikipedia word for word (without any personal insight), where different amounts of supported, refuted, and neutral evidence to the source claim should be included; 
+ For "auxiliary_info" of [wisdom of crowds], please ensure that: 1) the depth of the conversation tree in "auxiliary_info" must be more than two, and 2) the hierarchical conversation tree in "auxiliary_info" can be noisy but valuable to help verify the source claim.
+8. Please focus on "{task_name}" constraints, and ensure that upon careful consideration a human fact-checker with commonsense can identify the factuality of the new prompt.
+9. The new prompt should be STRICTLY within 512 words and should not be too long.
+
+Please generate a new test case. Output in a json format: {{"key_point": string(...), "test_mode": string(...), "prompt": {{"source_claim": string(...), "auxiliary_info": string(...)}}}}. """
