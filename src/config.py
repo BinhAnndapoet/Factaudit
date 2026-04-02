@@ -69,7 +69,7 @@ llm_scorer = ChatOllama(
 # 4. Target LLM (Mô hình bị kiểm toán)
 # Có thể dùng Llama 2 để bám sát mã nguồn gốc của bài báo.
 llm_target = ChatOllama(
-    model="llama2", 
+    model="llama3.1", 
     temperature=0.6
 )
 
@@ -78,4 +78,5 @@ llm_target = ChatOllama(
 MAX_RETRIES = 3              # Số lần lặp tối đa khi LLM bị Judge/Quality Inspector từ chối
 MAX_WEB_CHECKS = 2           # Số lần tối đa được phép quay lại web_check_node để sửa lỗi trước khi bỏ qua
 LOW_SCORE_THRESHOLD = 3.0    # Ngưỡng điểm để xếp một test case vào loại "Bad Case" (dành cho Evaluator)
-MAX_ITERATIONS = 30          # Số vòng lặp tối đa của Prober (Iterative Probing) theo bài báo
+# MAX_ITERATIONS = 30          # Số vòng lặp tối đa của Prober (Iterative Probing) theo bài báo
+MAX_ITERATIONS = 3
