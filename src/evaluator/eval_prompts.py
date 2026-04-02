@@ -1,3 +1,6 @@
+gen_fact_problem_prompt = """This is a fact-checking task. Please directly verify the factual accuracy of the statement provided below. Your response should conclude whether the statement in the question is Factual, Non-Factual, or Not Enough Information based on the claim itself, or an attached evidence set, or a given conversation thread of user replies. \n\nQuestion: {question}\nAnswer: [Factual, Non-Factual, or Not Enough Information]\nJustification:"""    
+ 
+
 # ==========================================
 # 1. PROMPT VOTE (Gộp 3 luồng song song)
 # ==========================================
