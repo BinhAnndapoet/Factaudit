@@ -125,20 +125,3 @@ appraiser_builder.add_conditional_edges("analyze_node", route_after_analyze)
 appraiser_builder.add_conditional_edges("judge_node", route_after_judge)
 
 appraiser_graph = appraiser_builder.compile()
-
-
-# visualization appraiser graph
-def export_graph_png(graph, filename="img/appraiser_architecture.png"):
-    import os
-    os.makedirs(os.path.dirname(filename), exist_ok=True)
-
-    png_bytes = graph.get_graph().draw_mermaid_png()
-
-    with open(filename, "wb") as f:
-        f.write(png_bytes)
-
-    print(f"Đã lưu sơ đồ thành công tại: {filename}")
-
-
-appraiser_graph = appraiser_builder.compile()
-export_graph_png(appraiser_graph)

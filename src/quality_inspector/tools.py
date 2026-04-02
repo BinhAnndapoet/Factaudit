@@ -9,12 +9,13 @@ evidence is factual or hallucinated.
 
 from typing import Tuple
 from pydantic import BaseModel, Field
-from langchain_community.tools.tavily_search import TavilySearchResults
+# from langchain_community.tools.tavily_search import TavilySearchResults
+from langchain_tavily import TavilySearch
 from langchain_core.prompts import PromptTemplate
 from config import llm_judge
 from .inspector_prompts import verification_prompt
 
-tavily_search = TavilySearchResults(max_results=3, search_depth="advanced")
+tavily_search = TavilySearch(max_results=3, search_depth="advanced")
 
 class WebVerification(BaseModel):
     """Schema for evaluating generated evidence against real web search results."""

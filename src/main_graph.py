@@ -11,7 +11,7 @@ import operator
 from typing import Annotated, List, Dict, Any
 from typing_extensions import TypedDict
 from langgraph.graph import StateGraph, START, END
-from langgraph.constants import Send
+from langgraph.types import Send
 
 # ==== IMPORT GLOBAL CONFIG ====
 from config import MAX_ITERATIONS, MAX_WEB_CHECKS
@@ -121,6 +121,7 @@ evaluation_subgraph = eval_builder.compile()
 
 class MainState(TypedDict):
     main_task: str
+    categories: Dict[str, List[str]] # <-- Thêm dòng này để truyền xuống Inquirer
     taxonomy_scores: Dict[str, float]
     bad_cases_formatted: str
     current_new_task: str

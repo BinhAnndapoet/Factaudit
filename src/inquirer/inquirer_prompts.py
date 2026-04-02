@@ -18,4 +18,16 @@ Step 1 "source_claim":
 Step 2 "test_mode": 
 Step 3 "auxiliary_info":
 Step 4 "key_point":
-Step 5 Repeat Step 1-4 for each test case and then output one final JSON format: {"test_case1": {"key_point": string(...), "test_mode": string(...), "prompt": {"source_claim": string(...), "auxiliary_info": string(...)}}, "test_case2": {...}, ...}."""
+Step 5 Repeat Step 1-4 for each test case and then output one final JSON format: 
+{{
+    "test_case1": {{
+        "key_point": "string(...)", 
+        "test_mode": "string(...)", 
+        "prompt": {{
+            "source_claim": "string(...)", 
+            "auxiliary_info": "string(...)"
+        }}
+    }}, 
+    "test_case2": {{...}}, 
+    ...
+}}"""
