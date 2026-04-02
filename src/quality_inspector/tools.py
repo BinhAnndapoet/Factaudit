@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_core.prompts import PromptTemplate
 from config import llm_judge
-from prompts import verification_prompt
+from .inspector_prompts import verification_prompt
 
 tavily_search = TavilySearchResults(max_results=3, search_depth="advanced")
 
