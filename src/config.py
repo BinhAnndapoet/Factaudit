@@ -35,8 +35,15 @@ llm_scorer = ChatGoogleGenerativeAI(
     api_key=GEMINI_API_KEY
 )
 
+llm_target = ChatGoogleGenerativeAI(
+    model="gemini-2.5-flash", # Ví dụ ta mang bản Pro ra test
+    temperature=0.6, 
+    api_key=GEMINI_API_KEY
+)
+
 
 # Global Constants
 MAX_RETRIES = 3              # Số lần lặp tối đa khi LLM bị Judge/Quality Inspector từ chối
+MAX_WEB_CHECKS = 2           # Số lần tối đa được phép quay lại web_check_node để sửa lỗi trước khi bỏ qua
 LOW_SCORE_THRESHOLD = 3.0    # Ngưỡng điểm để xếp một test case vào loại "Bad Case" (dành cho Evaluator)
 MAX_ITERATIONS = 30          # Số vòng lặp tối đa của Prober (Iterative Probing) theo bài báo
