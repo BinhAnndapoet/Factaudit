@@ -10,24 +10,24 @@ from .tools import advanced_web_check
 
 # ==== GRAPH NODES ====
 
-def select_next_case_node(state: InspectorState):
-    """Lấy test case tiếp theo từ danh sách pending_cases để xử lý."""
-    pending = state.get("pending_cases", [])
-    approved = state.get("approved_cases", [])
+# def select_next_case_node(state: InspectorState):
+#     """Lấy test case tiếp theo từ danh sách pending_cases để xử lý."""
+#     pending = state.get("pending_cases", [])
+#     approved = state.get("approved_cases", [])
     
-    if not pending:
-        # Hết dữ liệu để duyệt
-        return {"current_case": None}
+#     if not pending:
+#         # Hết dữ liệu để duyệt
+#         return {"current_case": None}
         
-    current = pending[0]
-    remaining_pending = pending[1:]
+#     current = pending[0]
+#     remaining_pending = pending[1:]
     
-    print(f"\n[Inspector] Đang lấy 1 test case ra để kiểm tra. Còn lại {len(remaining_pending)} cases.")
-    return {
-        "current_case": current,
-        "pending_cases": remaining_pending,
-        "retry_count": 0  # Reset retry count cho case mới
-    }
+#     print(f"\n[Inspector] Đang lấy 1 test case ra để kiểm tra. Còn lại {len(remaining_pending)} cases.")
+#     return {
+#         "current_case": current,
+#         "pending_cases": remaining_pending,
+#         "retry_count": 0  # Reset retry count cho case mới
+#     }
 
 def web_check_node(state: InspectorState):
     """Tầng 1: Kiểm tra thực tế bằng Tavily Search và Mini-RAG."""
@@ -55,7 +55,6 @@ def llm_inspection_node(state: InspectorState):
     prompt = PromptTemplate.from_template(judge_new_case_prompt)
     chain = prompt | inspector
     
-    # Nếu bước Web tìm ra lỗi, chèn lỗi vào để LLM biết đường sửa
     web_error_msg = current_case.pop("web_error", None)
     case_str = json.dumps(current_case, ensure_ascii=False, indent=2)
     if web_error_msg:
@@ -68,18 +67,20 @@ def llm_inspection_node(state: InspectorState):
     })
     
     if response.is_valid and not web_error_msg:
-        print("[LLM Inspector] Case đạt chuẩn! Đưa vào danh sách Approved.")
-        approved = state.get("approved_cases", []) + [response.revised_case.model_dump()]
-        return {"approved_cases": approved, "current_case": None}
+        print("[LLM Inspector] Case đạt chuẩn! Tiếp tục tới Target LLM & Evaluator.")
+        # QUAN TRỌNG: KHÔNG set current_case = None. 
+        # Trả về case sạch sẽ (không còn cờ error) để Target LLM dùng
+        return {"current_case": response.revised_case.model_dump(), "retry_count": 0}
     else:
         print(f"[LLM Inspector] Vi phạm quy tắc. Feedback: {response.feedback}")
-        print("[LLM Inspector] Đã sinh ra bản sửa lỗi (Revised). Sẽ kiểm tra lại bản này.")
-        new_retry_count = state.get("retry_count", 0) + 1
         
-        # Ghi đè current_case bằng bản sửa lỗi của LLM để check lại từ đầu ở vòng sau
+        # Gắn cờ 'llm_error' vào bản revised để Router ở main_graph nhận diện được
+        revised = response.revised_case.model_dump()
+        revised["llm_error"] = response.feedback
+        
         return {
-            "current_case": response.revised_case.model_dump(),
-            "retry_count": new_retry_count
+            "current_case": revised,
+            "retry_count": state.get("retry_count", 0) + 1
         }
 
 # ==== GRAPH EDGES ====
@@ -106,15 +107,15 @@ def route_after_inspection(state: InspectorState) -> Literal["select_next_case_n
     return "web_check_node"
 
 # ==== GRAPH BUILDER ====
-inspector_builder = StateGraph(InspectorState)
+# inspector_builder = StateGraph(InspectorState)
 
-inspector_builder.add_node("select_next_case_node", select_next_case_node)
-inspector_builder.add_node("web_check_node", web_check_node)
-inspector_builder.add_node("llm_inspection_node", llm_inspection_node)
+# inspector_builder.add_node("select_next_case_node", select_next_case_node)
+# inspector_builder.add_node("web_check_node", web_check_node)
+# inspector_builder.add_node("llm_inspection_node", llm_inspection_node)
 
-inspector_builder.add_edge(START, "select_next_case_node")
-inspector_builder.add_conditional_edges("select_next_case_node", route_after_select)
-inspector_builder.add_edge("web_check_node", "llm_inspection_node")
-inspector_builder.add_conditional_edges("llm_inspection_node", route_after_inspection)
+# inspector_builder.add_edge(START, "select_next_case_node")
+# inspector_builder.add_conditional_edges("select_next_case_node", route_after_select)
+# inspector_builder.add_edge("web_check_node", "llm_inspection_node")
+# inspector_builder.add_conditional_edges("llm_inspection_node", route_after_inspection)
 
-inspector_graph = inspector_builder.compile()
+# inspector_graph = inspector_builder.compile()
