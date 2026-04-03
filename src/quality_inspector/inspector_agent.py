@@ -51,6 +51,13 @@ def llm_inspection_node(state: InspectorState):
     current_case = state["current_case"]
     task_name = state.get("task_name", "Unknown")
     
+    # === SỬA BUG 2: FORCE DỌN DẸP DATA BẰNG PYTHON ===
+    # Đảm bảo auxiliary_info phải rỗng đối với chế độ [claim]
+    if current_case.get("test_mode") == "[claim]":
+        if "prompt" in current_case:
+            current_case["prompt"]["auxiliary_info"] = ""
+    # ===================================================
+    
     inspector = llm_judge.with_structured_output(InspectionOutput)
     prompt = PromptTemplate.from_template(judge_new_case_prompt)
     chain = prompt | inspector

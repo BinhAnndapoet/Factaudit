@@ -7,6 +7,7 @@ from the web and uses a deterministic LLM to verify if the AI-generated
 evidence is factual or hallucinated.
 """
 
+import json
 from typing import Tuple
 from pydantic import BaseModel, Field
 # from langchain_community.tools.tavily_search import TavilySearchResults
@@ -54,8 +55,18 @@ def advanced_web_check(test_case: dict) -> Tuple[bool, str]:
         print(f"[WebTool] Searching Tavily for: '{search_query}'...")
         docs = tavily_search.invoke({"query": search_query})
         
-        if not docs:
-            return False, "No information found on the web to verify this evidence."
+        # Lớp xử lý an toàn: Ép kiểu chuỗi JSON về dạng danh sách (List[Dict])
+        if isinstance(docs, str):
+            try:
+                docs = json.loads(docs)
+            except json.JSONDecodeError:
+                pass # Giữ nguyên nếu không thể phân tích chuỗi
+                
+        # Phân rã dữ liệu an toàn dựa trên loại dữ liệu cuối cùng
+        if isinstance(docs, list):
+            web_results_str = "\n\n".join([f"Source: {doc.get('url', 'N/A')}\nContent: {doc.get('content', '')}" for doc in docs if isinstance(doc, dict)])
+        else:
+            web_results_str = str(docs) # Dự phòng nếu dữ liệu vẫn là chuỗi thuần
             
         web_results_str = "\n\n".join([f"Source: {doc.get('url')}\nContent: {doc.get('content')}" for doc in docs])
         
