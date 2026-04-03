@@ -67,8 +67,6 @@ def advanced_web_check(test_case: dict) -> Tuple[bool, str]:
             web_results_str = "\n\n".join([f"Source: {doc.get('url', 'N/A')}\nContent: {doc.get('content', '')}" for doc in docs if isinstance(doc, dict)])
         else:
             web_results_str = str(docs) # Dự phòng nếu dữ liệu vẫn là chuỗi thuần
-            
-        web_results_str = "\n\n".join([f"Source: {doc.get('url')}\nContent: {doc.get('content')}" for doc in docs])
         
         # Use the Judge LLM to cross-reference evidence with web facts
         verifier = llm_judge.with_structured_output(WebVerification)
