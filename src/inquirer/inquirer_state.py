@@ -15,7 +15,7 @@ class InquirerState(TypedDict):
     Internal State for the Inquirer sub-graph.
     """
     # Input
-    task_name: str
+    final_new_task: str
     categories: Dict[str, List[str]] # The full taxonomy for context
     
     # Internal & Output

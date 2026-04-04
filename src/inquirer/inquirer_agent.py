@@ -21,7 +21,7 @@ def generate_seed_node(state: InquirerState):
     """
     Generate 10 prototype test cases based on the given task name.
     """
-    task_name = state.get("task_name", "Unknown Task")
+    task_name = state.get("final_new_task", "Unknown Task")
     print(f"\n[Inquirer] Generating seed data for scenario: {task_name} (Attempt {state.get('retry_count', 0) + 1})...")
     
     # Use the deterministic LLM (temp=0.0) with strictly structured output

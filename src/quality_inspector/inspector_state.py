@@ -12,7 +12,8 @@ class InspectorState(TypedDict):
 
 class PromptContent(BaseModel):
     source_claim: str = Field(description="The statement to be fact-checked.")
-    auxiliary_info: str = Field(description="External knowledge source or empty.")
+    # auxiliary_info: str = Field(description="External knowledge source or empty.")
+    auxiliary_info: Optional[str] = Field(default="", description="External knowledge source. Must be empty or omitted if test_mode is [claim].")
 
 class TestCase(BaseModel):
     key_point: str = Field(description="Short sentence summarizing the key point.")
@@ -21,5 +22,6 @@ class TestCase(BaseModel):
 
 class InspectionOutput(BaseModel):
     is_valid: bool = Field(description="True if the test case meets all criteria, False otherwise.")
-    feedback: str = Field(default="", description="If invalid, explain what rules were violated.")
+    # feedback: str = Field(default="", description="If invalid, explain what rules were violated.")
+    feedback: str = Field(description="MUST explain clearly what rules were violated if is_valid is False. If is_valid is True, just output 'Pass'.")
     revised_case: TestCase = Field(description="The valid test case (either original if valid, or a corrected version).")
