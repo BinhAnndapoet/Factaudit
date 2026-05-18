@@ -1,0 +1,15 @@
+# Core Frameworks
+langgraph>=0.0.26
+langchain-core>=0.1.52
+
+# LLM Integrations (Dựa vào việc check GEMINI_API_KEY trong main.py)
+langchain-google-genai>=1.0.1
+
+# Tools & Search (Dựa vào src/quality_inspector/tools.py)
+langchain-tavily>=0.1.0
+langchain-ollama>=0.1.0
+
+# Utilities
+pydantic>=2.0.0
+python-dotenv>=1.0.0
+typing-extensions>=4.6.0
