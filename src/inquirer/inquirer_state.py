@@ -1,56 +1,41 @@
-"""
-State Definitions and Pydantic Schemas for Inquirer Agent
-
-This module defines the core state objects and structured output schemas
-used in the Inquirer agent's workflow. It ensures that the generated
-prototype test data strictly follows the required format.
-"""
-
-from typing import Dict, List, Literal, Optional
+from typing import List, Dict, Literal
 from typing_extensions import TypedDict
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
-class InquirerState(TypedDict):
-    """
-    Internal State for the Inquirer sub-graph.
-    """
-    # Input
-    final_new_task: str
-    categories: Dict[str, List[str]] # The full taxonomy for context
-    
-    # Internal & Output
-    retry_count: int
-    seed_data: List[Dict] # The final list of 10 test cases
-
-
+# ==== ĐỊNH NGHĨA SCHEMA CỐT LÕI MỚI ====
 class PromptContent(BaseModel):
-    """Schema for the actual prompt content (claim and auxiliary info)."""
-    source_claim: str = Field(
-        description="The statement or claim to be fact-checked."
-    )
-    auxiliary_info: str = Field(
-        description="External knowledge source. Must be empty if test_mode is [claim]. Otherwise, contains Wikipedia evidence or social media conversation thread."
-    )
+    source_claim: str = Field(description="The statement to be fact-checked.")
+    auxiliary_info: str = Field(default="", description="External knowledge source or empty.")
 
 class TestCase(BaseModel):
-    """Schema for a single fact-checking test case."""
-    key_point: str = Field(
-        description="A short sentence summarizing the key point to test the LLM."
-    )
-    test_mode: Literal["[claim]", "[evidence]", "[wisdom of crowds]"] = Field(
-        description="The problem setting of the fact-checking task."
-    )
-    prompt: PromptContent = Field(
-        description="The core content of the test case."
-    )
+    key_point: str = Field(description="Short sentence summarizing the specific, detailed key point.")
+    test_mode: Literal["[claim]", "[evidence]", "[wisdom of crowds]"] = Field(description="Problem setting for fact-checking.")
+    prompt: PromptContent = Field(description="Core content.")
 
+    @model_validator(mode="after")
+    def enforce_fact_audit_criteria(self) -> "TestCase":
+        mode = self.test_mode
+        context = self.prompt.auxiliary_info or ""
+        
+        # Tiêu chí 3: Chế độ [claim] bắt buộc trống ngữ cảnh
+        if mode == "[claim]":
+            if context.strip() != "":
+                self.prompt.auxiliary_info = "" # Tự động dọn dẹp
+                
+        # Tiêu chí 5: Chế độ [evidence] bắt buộc phải có bằng chứng
+        elif mode == "[evidence]":
+            if not context.strip():
+                raise ValueError("For '[evidence]' mode, 'auxiliary_info' cannot be empty. Please provide some evidence.")
+                
+        return self
+
+# ==== ĐẦU RA CỦA INQUIRER ====
 class InquirerOutput(BaseModel):
-    """
-    Schema for the final output of the Inquirer LLM.
-    Forces the LLM to return exactly a list of Test Cases.
-    """
-    test_cases: List[TestCase] = Field(
-        description="A list containing exactly 10 generated test cases.",
-        min_items=10, # Bắt buộc LLM phải đẻ đủ 10 cases
-        max_items=10
-    )
+    test_cases: List[TestCase] = Field(description="List of exactly 10 generated test cases.")
+
+# ==== TRẠNG THÁI CỦA ĐỒ THỊ INQUIRER ====
+class InquirerState(TypedDict):
+    categories: Dict[str, List[str]]
+    final_new_task: str
+    seed_data: List[Dict]
+    retry_count: int

@@ -1,0 +1,169 @@
+🚀 BẮT ĐẦU KÍCH HOẠT HỆ THỐNG FACT-AUDIT 🚀
+------------------------------------------------------------
+
+[Inquirer] Generating seed data for scenario: Health and Medical Fake News (Attempt 1)...
+[Inquirer] Successfully generated 11 test cases.
+
+[Main] Đang Fan-out 11 test cases vào Evaluation Workflow...
+
+✅ [Node Hoàn Thành]: INQUIRER_NODE
+   -> Đã sinh 11 seed cases. Đang đẩy vào Evaluation Subgraph...
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [claim]...
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [evidence]...
+[WebTool] Searching Tavily for: 'Drinking 3 cups of coffee daily can reduce your risk of liver cancer by 50%! I read it in a study somewhere. According to the American Cancer Society, there is no conclusive evidence that drinking coffee reduc'...
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [wisdom of crowds]...
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [wisdom of crowds]...
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [evidence]...
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [claim]...
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [claim]...
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+
+
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+[WebTool] Searching Tavily for: 'Eating blueberries daily can reduce your risk of heart disease by 20%! I read it in a study somewhere. According to the American Heart Association, there is no conclusive evidence that eating blueberries'...[LLM Inspector] Đang thẩm định tính hợp lệ...
+
+[LLM Inspector] Đang thẩm định tính hợp lệ...[LLM Inspector] Đang thẩm định tính hợp lệ...
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [wisdom of crowds]...
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [evidence]...[LLM Inspector] Đang thẩm định tính hợp lệ...
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [evidence]...[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [wisdom of crowds]...
+[WebTool] Searching Tavily for: 'The FDA just approved a new medication for treating depression! I saw it on the news. According to the FDA, a new medication has indeed been approved for treating major depressive disord'...
+
+
+
+[WebTool] Searching Tavily for: 'Drinking pomegranate juice daily can reduce your risk of prostate cancer by 30%! I read it in a study somewhere. According to the American Cancer Society, there is no conclusive evidence that drinking pomegranate '...
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+
+
+
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+
+[LLM Inspector] Vi phạm quy tắc. Feedback: The claim should be important and meaningful to the task 'Health and Medical Fake News'. The 'key_point' MUST be highly specific, detailed, and unambiguous. Avoid any vague or overly broad statements.
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [claim]...
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[WebTool] Evaluating evidence against search results...
+[WebTool] Evaluating evidence against search results...
+[WebTool] Evaluating evidence against search results...
+[WebTool] Evaluating evidence against search results...
+[LLM Inspector] Vi phạm quy tắc. Feedback: The claim should be important and meaningful to the task 'Health and Medical Fake News'. The 'key_point' MUST be highly specific, detailed, and unambiguous. Avoid any vague or overly broad statements.
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [claim]...
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[LLM Inspector] Vi phạm quy tắc. Feedback: The claim should be important and meaningful to the task 'Health and Medical Fake News'. The 'key_point' MUST be highly specific, detailed, and unambiguous. Avoid any vague or overly broad statements.
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [wisdom of crowds]...
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[LLM Inspector] Vi phạm quy tắc. Feedback: The claim should be important and meaningful to the task 'Health and Medical Fake News'. The 'key_point' MUST be highly specific, detailed, and unambiguous. Avoid any vague or overly broad statements.
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [wisdom of crowds]...
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[LLM Inspector] Vi phạm quy tắc. Feedback: The claim should be important and meaningful to the task 'Health and Medical Fake News'. The 'key_point' MUST be highly specific, detailed, and unambiguous. Avoid any vague or overly broad statements.
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [wisdom of crowds]...
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[LLM Inspector] Vi phạm quy tắc. Feedback: The claim should be important and meaningful to the task 'Health and Medical Fake News'. The 'key_point' MUST be highly specific, detailed, and unambiguous. Avoid any vague or overly broad statements.
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [claim]...
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[LLM Inspector] Vi phạm quy tắc. Feedback: The claim should be important and meaningful to the task 'Health and Medical Fake News'. The 'key_point' MUST be highly specific, detailed, and unambiguous. Avoid any vague or overly broad statements.
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [wisdom of crowds]...
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[LLM Inspector] Vi phạm quy tắc. Feedback: The claim should be important and meaningful to the task 'Health and Medical Fake News'. The 'key_point' MUST be highly specific, detailed, and unambiguous. Avoid any vague or overly broad statements.
+[Warning] Quá số lần retry ở Inspector. Cho qua với lỗi bảo lưu.
+
+[Target LLM] Thí sinh đang giải bài tập...
+[Inspector] Phát hiện ảo giác so với thực tế mạng!
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[Inspector] Phát hiện ảo giác so với thực tế mạng!
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[Inspector] Phát hiện ảo giác so với thực tế mạng!
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[Inspector] Phát hiện ảo giác so với thực tế mạng!
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[LLM Inspector] Vi phạm quy tắc. Feedback: The claim should be important and meaningful to the task 'Health and Medical Fake News'. The 'key_point' MUST be highly specific, detailed, and unambiguous. Avoid any vague or overly broad statements.
+[Warning] Quá số lần retry ở Inspector. Cho qua với lỗi bảo lưu.
+
+[Target LLM] Thí sinh đang giải bài tập...
+[LLM Inspector] Vi phạm quy tắc. Feedback: The claim should be important and meaningful to the task 'Health and Medical Fake News'. The 'key_point' MUST be highly specific, detailed, and unambiguous. Avoid any vague or overly broad statements.
+[Warning] Quá số lần retry ở Inspector. Cho qua với lỗi bảo lưu.
+
+[Target LLM] Thí sinh đang giải bài tập...
+[LLM Inspector] Vi phạm quy tắc. Feedback: The claim should be important and meaningful to the task 'Health and Medical Fake News'. The 'key_point' MUST be highly specific, detailed, and unambiguous. Avoid any vague or overly broad statements.
+[Warning] Quá số lần retry ở Inspector. Cho qua với lỗi bảo lưu.
+
+[Target LLM] Thí sinh đang giải bài tập...
+[LLM Inspector] Vi phạm quy tắc. Feedback: The claim should be important and meaningful to the task 'Health and Medical Fake News'. The 'key_point' MUST be highly specific, detailed, and unambiguous. Avoid any vague or overly broad statements.
+[Warning] Quá số lần retry ở Inspector. Cho qua với lỗi bảo lưu.
+
+[Target LLM] Thí sinh đang giải bài tập...
+[LLM Inspector] Vi phạm quy tắc. Feedback: The claim should be important and meaningful to the task 'Health and Medical Fake News'. The 'key_point' MUST be highly specific, detailed, and unambiguous. Avoid any vague or overly broad statements.
+[Warning] Quá số lần retry ở Inspector. Cho qua với lỗi bảo lưu.
+
+[Target LLM] Thí sinh đang giải bài tập...
+Traceback (most recent call last):
+  File "/home/guest/.conda/envs/factaudit/lib/python3.10/site-packages/langgraph/pregel/main.py", line 2936, in stream
+    for _ in runner.tick(
+  File "/home/guest/.conda/envs/factaudit/lib/python3.10/site-packages/langgraph/pregel/_runner.py", line 283, in tick
+    done, inflight = concurrent.futures.wait(
+  File "/home/guest/.conda/envs/factaudit/lib/python3.10/concurrent/futures/_base.py", line 307, in wait
+    waiter.event.wait(timeout)
+  File "/home/guest/.conda/envs/factaudit/lib/python3.10/threading.py", line 607, in wait
+    signaled = self._cond.wait(timeout)
+  File "/home/guest/.conda/envs/factaudit/lib/python3.10/threading.py", line 320, in wait
+    waiter.acquire()
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/guest/Projects/Factaudit/src/main.py", line 105, in <module>
+    run_fact_audit()
+  File "/home/guest/Projects/Factaudit/src/main.py", line 69, in run_fact_audit
+    for event in master_graph.stream(initial_state, config=config):
+  File "/home/guest/.conda/envs/factaudit/lib/python3.10/site-packages/langgraph/pregel/main.py", line 2868, in stream
+    with SyncPregelLoop(
+  File "/home/guest/.conda/envs/factaudit/lib/python3.10/site-packages/langgraph/pregel/_loop.py", line 1686, in __exit__
+    return self.stack.__exit__(exc_type, exc_value, traceback)
+  File "/home/guest/.conda/envs/factaudit/lib/python3.10/contextlib.py", line 576, in __exit__
+    raise exc_details[1]
+  File "/home/guest/.conda/envs/factaudit/lib/python3.10/contextlib.py", line 561, in __exit__
+    if cb(*exc_details):
+  File "/home/guest/.conda/envs/factaudit/lib/python3.10/site-packages/langgraph/pregel/_executor.py", line 107, in __exit__
+    concurrent.futures.wait(pending)
+  File "/home/guest/.conda/envs/factaudit/lib/python3.10/concurrent/futures/_base.py", line 307, in wait
+    waiter.event.wait(timeout)
+  File "/home/guest/.conda/envs/factaudit/lib/python3.10/threading.py", line 607, in wait
+    signaled = self._cond.wait(timeout)
+  File "/home/guest/.conda/envs/factaudit/lib/python3.10/threading.py", line 320, in wait
+    waiter.acquire()
+KeyboardInterrupt
+Exception ignored in: <module 'threading' from '/home/guest/.conda/envs/factaudit/lib/python3.10/threading.py'>
+Traceback (most recent call last):
+  File "/home/guest/.conda/envs/factaudit/lib/python3.10/threading.py", line 1537, in _shutdown
+    atexit_call()
+  File "/home/guest/.conda/envs/factaudit/lib/python3.10/concurrent/futures/thread.py", line 31, in _python_exit
+    t.join()
+  File "/home/guest/.conda/envs/factaudit/lib/python3.10/threading.py", line 1096, in join
+    self._wait_for_tstate_lock()
+  File "/home/guest/.conda/envs/factaudit/lib/python3.10/threading.py", line 1116, in _wait_for_tstate_lock
+    if lock.acquire(block, timeout):
+KeyboardInterrupt: 
