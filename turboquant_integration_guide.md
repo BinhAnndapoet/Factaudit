@@ -1,8 +1,8 @@
 # TurboQuant+ Integration Guide for FACT-AUDIT
 
-**Version:** 1.0  
-**Date:** 2025-06-25  
-**Author:** AI Systems Engineer  
+**Version:** 1.0
+**Date:** 2025-06-25
+**Author:** AI Systems Engineer
 
 ---
 
@@ -83,11 +83,11 @@ Hệ thống FACT-AUDIT hoạt động theo kiến trúc **Client-Server** tách
 
 ### 1.2 Thành phần hệ thống
 
-| Thành phần | Vai trò | Chạy tại Runtime |
-|-----------|---------|------------------|
-| **Factaudit** | Python LangGraph orchestrator, điều phối các agent fact-checking | ✅ Yes |
-| **llama-cpp-turboquant** | C++ Server, serve LLM inference với KV cache compression | ✅ Yes |
-| **turboquant_plus** | Thuật toán nén, dùng để training/calibration (1 lần) | ❌ No |
+| Thành phần                   | Vai trò                                                             | Chạy tại Runtime |
+| ------------------------------ | -------------------------------------------------------------------- | ------------------ |
+| **Factaudit**            | Python LangGraph orchestrator, điều phối các agent fact-checking | ✅ Yes             |
+| **llama-cpp-turboquant** | C++ Server, serve LLM inference với KV cache compression            | ✅ Yes             |
+| **turboquant_plus**      | Thuật toán nén, dùng để training/calibration (1 lần)          | ❌ No              |
 
 **Điểm quan trọng:** Code Factaudit **KHÔNG chứa** logic tính toán của TurboQuant+. Thay vào đó, Factaudit giao tiếp với `llama-cpp-turboquant` thông qua **OpenAI-compatible API**.
 
@@ -133,13 +133,13 @@ Fact-Checking Result
 
 ### 2.1 Yêu cầu hệ thống
 
-| Yêu cầu | Tối thiểu | Khuyến nghị |
-|---------|-----------|-------------|
-| CPU | 8 cores | 16+ cores |
-| RAM | 16 GB | 32 GB+ |
-| GPU VRAM | 8 GB (Baseline) | 12 GB+ (TurboQuant) |
-| OS | Linux/Windows | Ubuntu 22.04 LTS |
-| Compiler | GCC 11+ | GCC 13+ |
+| Yêu cầu | Tối thiểu     | Khuyến nghị       |
+| --------- | --------------- | ------------------- |
+| CPU       | 8 cores         | 16+ cores           |
+| RAM       | 16 GB           | 32 GB+              |
+| GPU VRAM  | 8 GB (Baseline) | 12 GB+ (TurboQuant) |
+| OS        | Linux/Windows   | Ubuntu 22.04 LTS    |
+| Compiler  | GCC 11+         | GCC 13+             |
 
 ### 2.2 Cài đặt llama-cpp-turboquant
 
@@ -257,20 +257,21 @@ tail -f turboquant.log
 
 ### 2.5 So sánh cấu hình 2 Mode
 
-| Tham số | Baseline | TurboQuant+ | Giải thích |
-|---------|----------|-------------|------------|
-| `--cache-type-k` | f32/q8_0 | turbo3 | Format cache Key |
-| `--cache-type-v` | f32/q8_0 | turbo4 | Format cache Value |
-| `--ctx-size` | 8192 | 32768 | Context size (tokens) |
-| `--turbo-quant-bits` | N/A | 4 | Bits cho quantization |
-| `--turbo-group-size` | N/A | 64 | Group size cho QJL |
-| VRAM Usage | ~8GB | ~3.2GB | Tiết kiệm 60% |
+| Tham số               | Baseline | TurboQuant+ | Giải thích          |
+| ---------------------- | -------- | ----------- | --------------------- |
+| `--cache-type-k`     | f32/q8_0 | turbo3      | Format cache Key      |
+| `--cache-type-v`     | f32/q8_0 | turbo4      | Format cache Value    |
+| `--ctx-size`         | 8192     | 32768       | Context size (tokens) |
+| `--turbo-quant-bits` | N/A      | 4           | Bits cho quantization |
+| `--turbo-group-size` | N/A      | 64          | Group size cho QJL    |
+| VRAM Usage             | ~8GB     | ~3.2GB      | Tiết kiệm 60%       |
 
 ### 2.6 Chạy cả 2 Server song song (2 Terminal riêng biệt)
 
 Để chạy cả 2 mode cùng lúc, mở **2 terminal riêng biệt**:
 
 **Terminal 1 - Baseline Server (port 8080):**
+
 ```bash
 cd llama-cpp-turboquant/build
 
@@ -285,6 +286,7 @@ cd llama-cpp-turboquant/build
 ```
 
 **Terminal 2 - TurboQuant+ Server (port 8081):**
+
 ```bash
 cd llama-cpp-turboquant/build
 
@@ -299,6 +301,7 @@ cd llama-cpp-turboquant/build
 ```
 
 **Terminal 3 - Kiểm tra cả 2 server:**
+
 ```bash
 # Kiểm tra Baseline server
 curl http://localhost:8080/v1/models
@@ -416,27 +419,27 @@ class LLMSettings:
     top_p: float
     timeout: int
     stream_response: bool
-    
+  
     # Runtime settings
     use_turboquant: bool
     turboquant: Optional[TurboQuantConfig]
     baseline: Optional[BaselineConfig]
-    
+  
     @classmethod
     def from_env(cls) -> "LLMSettings":
         """Tạo settings từ environment variables"""
-        
+  
         # Parse boolean
         use_turboquant = os.getenv("USE_TURBOQUANT", "false").lower() == "true"
-        
+  
         # Parse integers
         max_tokens = int(os.getenv("MAX_TOKENS", "4096"))
         timeout = int(os.getenv("TIMEOUT", "300"))
-        
+  
         # Parse floats
         temperature = float(os.getenv("TEMPERATURE", "0.7"))
         top_p = float(os.getenv("TOP_P", "0.9"))
-        
+  
         # Parse TurboQuant config
         turboquant = None
         if use_turboquant:
@@ -446,13 +449,13 @@ class LLMSettings:
                 compression_ratio=float(os.getenv("TURBO_COMPRESSION_RATIO", "0.4")),
                 mode=os.getenv("TURBOQUANT_MODE", "balanced")
             )
-        
+  
         # Parse Baseline config
         baseline = BaselineConfig(
             api_base=os.getenv("BASELINE_API_BASE", "http://localhost:8080/v1"),
             context_size=int(os.getenv("BASELINE_CONTEXT_SIZE", "8192"))
         )
-        
+  
         return cls(
             model_name=os.getenv("MODEL_NAME", "Llama-3-8B-Instruct"),
             max_tokens=max_tokens,
@@ -464,19 +467,19 @@ class LLMSettings:
             turboquant=turboquant,
             baseline=baseline
         )
-    
+  
     def get_active_api_base(self) -> str:
         """Lấy API endpoint dựa trên mode hiện tại"""
         if self.use_turboquant and self.turboquant:
             return self.turboquant.api_base
         return self.baseline.api_base
-    
+  
     def get_max_context(self) -> int:
         """Lấy max context size dựa trên mode"""
         if self.use_turboquant and self.turboquant:
             return self.turboquant.context_size
         return self.baseline.context_size
-    
+  
     def switch_mode(self, use_turboquant: bool) -> None:
         """Switch giữa Baseline và TurboQuant mode"""
         self.use_turboquant = use_turboquant
@@ -518,7 +521,7 @@ class LLMFactory:
     """
     Factory để tạo LLM client với mode switching
     """
-    
+  
     @staticmethod
     def create_client(
         mode: Optional[Literal["baseline", "turboquant"]] = None,
@@ -526,26 +529,26 @@ class LLMFactory:
     ) -> OpenAI:
         """
         Tạo OpenAI client với API endpoint phù hợp
-        
+  
         Args:
             mode: "baseline" hoặc "turboquant" (None = use config)
             force_refresh: Force reload settings
-        
+  
         Returns:
             OpenAI client instance
         """
         settings = get_settings()
-        
+  
         if force_refresh:
             from src.config.settings import reload_settings
             settings = reload_settings()
-        
+  
         # Xác định mode
         if mode is not None:
             use_turbo = mode == "turboquant"
         else:
             use_turbo = settings.use_turboquant
-        
+  
         # Lấy API base
         if use_turbo and settings.turboquant:
             api_base = settings.turboquant.api_base
@@ -553,15 +556,15 @@ class LLMFactory:
         else:
             api_base = settings.baseline.api_base
             mode_name = "Baseline"
-        
+  
         print(f"[LLMFactory] Creating client in {mode_name} mode: {api_base}")
-        
+  
         return OpenAI(
             base_url=api_base,
             api_key=os.getenv("API_KEY", "sk-not-required"),
             timeout=settings.timeout
         )
-    
+  
     @staticmethod
     def get_chat_params():
         """Lấy chat parameters từ config"""
@@ -579,34 +582,34 @@ class ModeSwitcher:
     """
     Helper class để switch giữa modes runtime
     """
-    
+  
     def __init__(self):
         self.settings = get_settings()
         self._current_mode = "turboquant" if self.settings.use_turboquant else "baseline"
-    
+  
     @property
     def current_mode(self) -> str:
         return self._current_mode
-    
+  
     def switch_to_baseline(self) -> OpenAI:
         """Switch to Baseline mode"""
         self._current_mode = "baseline"
         self.settings.use_turboquant = False
         return LLMFactory.create_client(mode="baseline")
-    
+  
     def switch_to_turboquant(self) -> OpenAI:
         """Switch to TurboQuant+ mode"""
         self._current_mode = "turboquant"
         self.settings.use_turboquant = True
         return LLMFactory.create_client(mode="turboquant")
-    
+  
     def toggle_mode(self) -> OpenAI:
         """Toggle giữa 2 modes"""
         if self._current_mode == "baseline":
             return self.switch_to_turboquant()
         else:
             return self.switch_to_baseline()
-    
+  
     def get_client(self) -> OpenAI:
         """Lấy client cho mode hiện tại"""
         return LLMFactory.create_client(mode=self._current_mode)
@@ -630,7 +633,7 @@ class FactAuditLLMClient:
     Unified LLM Client cho FACT-AUDIT
     Tự động switch giữa Baseline và TurboQuant+ mode
     """
-    
+  
     def __init__(self, mode: Optional[str] = None):
         """
         Args:
@@ -639,36 +642,36 @@ class FactAuditLLMClient:
         self._mode = mode
         self._client: Optional[OpenAI] = None
         self._refresh_client()
-    
+  
     def _refresh_client(self):
         """Refresh client instance"""
         self._client = LLMFactory.create_client(mode=self._mode)
-    
+  
     @property
     def client(self) -> OpenAI:
         """Get OpenAI client instance"""
         if self._client is None:
             self._refresh_client()
         return self._client
-    
+  
     @property
     def mode(self) -> str:
         """Get current mode"""
         settings = get_settings()
         mode = self._mode or ("turboquant" if settings.use_turboquant else "baseline")
         return mode
-    
+  
     def switch_mode(self, new_mode: str) -> None:
         """
         Switch runtime mode
-        
+  
         Args:
             new_mode: "baseline" hoặc "turboquant"
         """
         self._mode = new_mode
         self._refresh_client()
         print(f"[Client] Switched to {new_mode.upper()} mode")
-    
+  
     def complete(
         self,
         prompt: str,
@@ -678,37 +681,37 @@ class FactAuditLLMClient:
     ) -> str:
         """
         Non-streaming completion
-        
+  
         Args:
             prompt: User prompt
             system_prompt: Optional system prompt
             max_tokens: Override max_tokens
-        
+  
         Returns:
             Generated text
         """
         settings = get_settings()
         params = LLMFactory.get_chat_params()
-        
+  
         # Build messages
         messages = []
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": prompt})
-        
+  
         # Override max_tokens if provided
         if max_tokens is not None:
             params["max_tokens"] = max_tokens
-        
+  
         # Call API
         response = self.client.chat.completions.create(
             messages=messages,
             **params,
             **kwargs
         )
-        
+  
         return response.choices[0].message.content
-    
+  
     def complete_stream(
         self,
         prompt: str,
@@ -718,39 +721,39 @@ class FactAuditLLMClient:
     ) -> Iterator[str]:
         """
         Streaming completion
-        
+  
         Args:
             prompt: User prompt
             system_prompt: Optional system prompt
             max_tokens: Override max_tokens
-        
+  
         Yields:
             Generated text chunks
         """
         settings = get_settings()
         params = LLMFactory.get_chat_params()
         params["stream"] = True
-        
+  
         # Build messages
         messages = []
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": prompt})
-        
+  
         if max_tokens is not None:
             params["max_tokens"] = max_tokens
-        
+  
         # Stream API call
         stream = self.client.chat.completions.create(
             messages=messages,
             **params,
             **kwargs
         )
-        
+  
         for chunk in stream:
             if chunk.choices and chunk.choices[0].delta.content:
                 yield chunk.choices[0].delta.content
-    
+  
     def get_model_info(self) -> dict:
         """Get thông tin model hiện tại"""
         settings = get_settings()
@@ -789,40 +792,40 @@ class FactCheckState(TypedDict):
 
 def fact_check_agent(state: FactCheckState) -> FactCheckState:
     """Agent thực hiện fact-checking"""
-    
+  
     print(f"[Agent] Running in {llm_client.mode} mode")
-    
+  
     prompt = f"""
     Analyze the following claim and provide a fact-check verdict:
-    
+  
     Claim: {state['claim']}
     Evidence: {state['evidence']}
-    
+  
     Provide:
     1. Verdict (TRUE/FALSE/PARTIAL)
     2. Reasoning
     3. Confidence score
     """
-    
+  
     system = "You are a professional fact-checker. Analyze claims objectively."
-    
+  
     result = llm_client.complete(prompt, system_prompt=system)
-    
+  
     state["verdict"] = result
     state["mode"] = llm_client.mode
-    
+  
     return state
 
 
 # Build LangGraph workflow
 def build_factaudit_graph():
     workflow = StateGraph(FactCheckState)
-    
+  
     workflow.add_node("fact_check", fact_check_agent)
     workflow.add_edge("fact_check", END)
-    
+  
     workflow.set_entry_point("fact_check")
-    
+  
     return workflow.compile()
 
 
@@ -835,7 +838,7 @@ if __name__ == "__main__":
     print("=== Running with BASELINE mode ===")
     llm_client.switch_mode("baseline")
     graph = build_factaudit_graph()
-    
+  
     result = graph.invoke({
         "claim": "Earth is flat",
         "evidence": "Satellite images show Earth is round",
@@ -843,12 +846,12 @@ if __name__ == "__main__":
         "mode": ""
     })
     print(f"Result: {result}")
-    
+  
     # Switch sang TurboQuant mode
     print("\n=== Running with TURBOQUANT+ mode ===")
     llm_client.switch_mode("turboquant")
     graph = build_factaudit_graph()
-    
+  
     result = graph.invoke({
         "claim": "Earth is flat",
         "evidence": "Satellite images show Earth is round",
@@ -873,7 +876,7 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description="FACT-AUDIT: Fact-Checking with Multi-Agent System"
     )
-    
+  
     # Mode selection
     parser.add_argument(
         "--mode",
@@ -882,47 +885,47 @@ def parse_args():
         default="auto",
         help="LLM inference mode (default: auto from .env)"
     )
-    
+  
     # Context size override
     parser.add_argument(
         "--context-size",
         type=int,
         help="Override max context size (tokens)"
     )
-    
+  
     # Performance
     parser.add_argument(
         "--max-tokens",
         type=int,
         help="Override max generation tokens"
     )
-    
+  
     parser.add_argument(
         "--temperature",
         type=float,
         help="Override temperature"
     )
-    
+  
     # Logging
     parser.add_argument(
         "--verbose",
         action="store_true",
         help="Enable verbose logging"
     )
-    
+  
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
-    
+  
     # Determine mode
     if args.mode == "auto":
         # Use .env config
         client = FactAuditLLMClient()
     else:
         client = FactAuditLLMClient(mode=args.mode)
-    
+  
     print(f"""
     ╔═══════════════════════════════════════════════════════╗
     ║           FACT-AUDIT System Started                  ║
@@ -933,7 +936,7 @@ def main():
     ║  Max Context: {client.get_model_info()['max_context']:<40} ║
     ╚═══════════════════════════════════════════════════════╝
     """)
-    
+  
     # Run fact-checking workflow
     # ... (your LangGraph workflow code)
 
@@ -1032,23 +1035,23 @@ client.switch_mode("baseline")
 
 ### 5.1 Benchmark Results
 
-| Metric | Baseline (Q8_0) | TurboQuant+ | Improvement |
-|--------|----------------|-------------|-------------|
-| VRAM Usage (8K ctx) | 8.2 GB | 3.1 GB | **62% reduction** |
-| Max Context Length | 8,192 tokens | 32,768 tokens | **4x capacity** |
-| Inference Speed | 45 t/s | 42 t/s | ~7% slower |
-| Quality (perplexity) | 7.82 | 7.89 | +0.9% (minimal) |
-| Long-Context Accuracy | - | +2.3% | Better retrieval |
+| Metric                | Baseline (Q8_0) | TurboQuant+   | Improvement             |
+| --------------------- | --------------- | ------------- | ----------------------- |
+| VRAM Usage (8K ctx)   | 8.2 GB          | 3.1 GB        | **62% reduction** |
+| Max Context Length    | 8,192 tokens    | 32,768 tokens | **4x capacity**   |
+| Inference Speed       | 45 t/s          | 42 t/s        | ~7% slower              |
+| Quality (perplexity)  | 7.82            | 7.89          | +0.9% (minimal)         |
+| Long-Context Accuracy | -               | +2.3%         | Better retrieval        |
 
 ### 5.2 Recommendation Matrix
 
-| Use Case | Recommended Mode | Why |
-|----------|------------------|-----|
-| Short claims (<2K tokens) | Baseline | Faster, simpler |
-| Long documents (>8K tokens) | TurboQuant+ | Handle long context |
-| Batch processing | Baseline | Max throughput |
-| Memory-constrained GPU | TurboQuant+ | Save VRAM |
-| Production (unknown inputs) | TurboQuant+ | Safe fallback |
+| Use Case                    | Recommended Mode | Why                 |
+| --------------------------- | ---------------- | ------------------- |
+| Short claims (<2K tokens)   | Baseline         | Faster, simpler     |
+| Long documents (>8K tokens) | TurboQuant+      | Handle long context |
+| Batch processing            | Baseline         | Max throughput      |
+| Memory-constrained GPU      | TurboQuant+      | Save VRAM           |
+| Production (unknown inputs) | TurboQuant+      | Safe fallback       |
 
 ---
 
@@ -1056,12 +1059,12 @@ client.switch_mode("baseline")
 
 ### 6.1 Common Issues
 
-| Issue | Symptoms | Solution |
-|-------|----------|----------|
-| Server not responding | Timeout errors | Check server logs, verify `--port` |
-| VRAM OOM | CUDA out of memory | Reduce `--ctx-size` or switch to TurboQuant |
-| Poor quality | Hallucinations increase | Increase temperature, check model |
-| Slow inference | < 30 t/s | Check GPU utilization, reduce batch size |
+| Issue                 | Symptoms                | Solution                                     |
+| --------------------- | ----------------------- | -------------------------------------------- |
+| Server not responding | Timeout errors          | Check server logs, verify`--port`          |
+| VRAM OOM              | CUDA out of memory      | Reduce`--ctx-size` or switch to TurboQuant |
+| Poor quality          | Hallucinations increase | Increase temperature, check model            |
+| Slow inference        | < 30 t/s                | Check GPU utilization, reduce batch size     |
 
 ### 6.2 Debug Commands
 
@@ -1144,6 +1147,6 @@ python src/main.py --mode turboquant    # hoặc --mode baseline
 
 ---
 
-**Document Version:** 1.0  
-**Last Updated:** 2025-06-25  
+**Document Version:** 1.0
+**Last Updated:** 2025-06-25
 **Contact:** dev-team@factaudit.org
