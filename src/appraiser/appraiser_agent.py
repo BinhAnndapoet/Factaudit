@@ -14,14 +14,15 @@ from langgraph.graph import StateGraph, START, END
 from config import llm_explorer, llm_judge, MAX_RETRIES
 from .appraiser_state import AppraiserState, AnalysisOutput, JudgeOutput
 from .appraiser_prompts import analysis_prompt, judge_new_task_prompt
+from langsmith import traceable
 
 
 # ==== GRAPH NODES ====
-
+@traceable(name="Appraiser_Node_Execution", run_type="chain")
 def analyze_node(state: AppraiserState):
     """
     Analyze the current taxonomy and propose a new test scenario if needed.
-    
+
     This node uses a creative LLM to review the lowest-scoring test cases
     and determine if a new, challenging sub-task should be added to the taxonomy.
     """
@@ -41,7 +42,7 @@ def analyze_node(state: AppraiserState):
     if response.is_stop:
         print("[Appraiser] Taxonomy is comprehensive. Reporting Stop.")
         return {"is_terminated": True, "current_new_task": None}
-    
+
     print(f"[Appraiser] Proposed new task: {response.task_name}")
     return {
         "current_new_task": response.task_name,
@@ -52,7 +53,7 @@ def analyze_node(state: AppraiserState):
 def judge_node(state: AppraiserState):
     """
     Judge the suitability of the newly proposed test scenario.
-    
+
     This node acts as a strict evaluator, ensuring the proposed task is
     meaningful, non-redundant, and text-only.
     """
@@ -81,7 +82,7 @@ def judge_node(state: AppraiserState):
             "final_new_task": state.get("current_new_task"),
             "is_terminated": False,
         }
-    
+
     else:
         print(f"[Judge] Rejected! Reason: {response.reason}")
         new_retry_count = current_retries + 1
@@ -90,9 +91,9 @@ def judge_node(state: AppraiserState):
         if new_retry_count >= MAX_RETRIES:
             print(f"[Judge] Rejected {MAX_RETRIES} times. Terminating task creation.")
             return {"retry_count": new_retry_count, "is_terminated": True}
-            
+
         return {"retry_count": new_retry_count}
-    
+
 
 # ==== GRAPH EDGES ====
 
@@ -106,7 +107,7 @@ def route_after_analyze(state: AppraiserState) -> Literal["judge_node", "__end__
 
 def route_after_judge(state: AppraiserState) -> Literal["analyze_node", "__end__"]:
     """
-    Decides whether to route back to the analyzer to retry proposing a task, 
+    Decides whether to route back to the analyzer to retry proposing a task,
     or end the graph if the task is accepted/terminated.
     """
     if state.get("final_new_task") or state.get("is_terminated"):

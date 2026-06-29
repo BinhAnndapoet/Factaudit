@@ -408,6 +408,8 @@ def main():
     # ==========================================
     load_dotenv()
 
+    if os.environ.get("LANGCHAIN_TRACING_V2") == "true":
+        print("LangSmith Tracing is ENABLED.")
     # Validate required environment variables
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:

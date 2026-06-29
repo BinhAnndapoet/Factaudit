@@ -14,6 +14,8 @@ from pydantic import BaseModel, Field
 from config import llm_explorer
 from .prober_prompt import deep_search_prompt
 
+from langsmith import traceable
+
 from typing import List, Dict, Literal
 from typing_extensions import TypedDict
 from pydantic import BaseModel, Field, model_validator
@@ -32,17 +34,17 @@ class TestCase(BaseModel):
     def enforce_fact_audit_criteria(self) -> "TestCase":
         mode = self.test_mode
         context = self.prompt.auxiliary_info or ""
-        
+
         # Tiêu chí 3: Chế độ [claim] bắt buộc trống ngữ cảnh
         if mode == "[claim]":
             if context.strip() != "":
                 self.prompt.auxiliary_info = "" # Tự động dọn dẹp
-                
+
         # Tiêu chí 5: Chế độ [evidence] bắt buộc phải có bằng chứng
         elif mode == "[evidence]":
             if not context.strip():
                 raise ValueError("For '[evidence]' mode, 'auxiliary_info' cannot be empty. Please provide some evidence.")
-                
+
         return self
 
 # ==== ĐẦU RA CỦA INSPECTOR ====
@@ -59,18 +61,19 @@ class InspectorState(TypedDict):
 
 
 # ==== LOGIC SAMPLING TỪ SOURCE CODE ====
+@traceable(name="Prober_Sample_History", run_type="tool")
 def _sample_history(memory_pool: list, show_num: int = 5) -> list:
     """
     Thuật toán Importance Sampling: Ưu tiên bốc Bad Cases để LLM khoét sâu điểm yếu.
     """
     if not memory_pool:
         return []
-        
+
     good_cases = [item for item in memory_pool if item.get('score', 10.0) > 3.0]
     bad_cases = [item for item in memory_pool if item.get('score', 10.0) <= 3.0]
-    
+
     sample_his = []
-    
+
     # Giống mã nguồn: Nếu ít data quá thì bốc 5 câu gần nhất
     if len(good_cases) < 5 or len(bad_cases) < 2:
         sample_his = memory_pool[-show_num:]
@@ -84,24 +87,25 @@ def _sample_history(memory_pool: list, show_num: int = 5) -> list:
             good_case = random.choice(good_cases)
             if good_case not in sample_his:
                 sample_his.append(good_case)
-                
+
         if len(sample_his) < 5:
             sample_his = memory_pool[-show_num:]
-            
+
     # Sắp xếp theo điểm từ cao xuống thấp để nhét vào prompt
     return sorted(sample_his, key=lambda k: k.get('score', 0), reverse=True)
 
 
 # ==== PROBER NODE ====
+@traceable(name="Prober_Generate_Complex_Case", run_type="chain")
 def prober_node(state: dict):
     print(f"\n[Prober] Vòng lặp thứ {state.get('iteration_count', 0) + 1}. Đang phân tích điểm yếu...")
-    
+
     memory_pool = state.get("memory_pool", [])
     task_name = state.get("task_name", "Fact-Checking Task")
-    
+
     # 1. Bốc mẫu lịch sử
     sampled_history = _sample_history(memory_pool)
-    
+
     # 2. Ép chuỗi lịch sử thành Context
     history_str = ""
     for j in sampled_history:
@@ -117,25 +121,25 @@ def prober_node(state: dict):
     # 3. Gọi LLM sinh câu hỏi xoắn não hơn
     prober = llm_explorer.with_structured_output(TestCase)
     chain = PromptTemplate.from_template(deep_search_prompt) | prober
-    
+
     try:
         res: TestCase = chain.invoke({
             "history_context": history_str,
             "task_name": task_name
         })
-        
+
         new_case_dict = res.model_dump()
         print(f"[Prober] Đã đẻ xong câu hỏi mới! Key Point: {new_case_dict['key_point']}")
-        
+
         # 4. Trả về Test Case mới để ghi đè 'current_case', sẵn sàng ném cho Quality Inspector
         # Tăng biến đếm vòng lặp
         return {
             "current_case": new_case_dict,
             "iteration_count": state.get("iteration_count", 0) + 1
         }
-        
+
     except Exception as e:
         print(f"[Prober] Lỗi khi sinh câu hỏi (Timeout/Format): {e}")
-        # Nếu lỗi, cứ tăng iteration_count để không bị lặp vô hạn, 
+        # Nếu lỗi, cứ tăng iteration_count để không bị lặp vô hạn,
         # và giữ nguyên current_case hoặc set None tùy chiến lược routing ở Đồ thị cha.
         return {"iteration_count": state.get("iteration_count", 0) + 1}
