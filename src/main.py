@@ -376,6 +376,8 @@ def run_fact_audit(args):
                         new_task = node_state.get('final_new_task', 'Unknown')
                         print(f"   -> 🔄 Đã chốt kịch bản mới: {new_task}")
                         print(f"   -> Bắt đầu vòng lặp tiến hóa tiếp theo...")
+        from compute_metrics import calculate_fact_audit_metrics
+        calculate_fact_audit_metrics()
 
     except Exception as e:
         print(f"\n❌ LỖI TRONG QUÁ TRÌNH CHẠY: {e}")
