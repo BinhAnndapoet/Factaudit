@@ -10,7 +10,7 @@ from langchain_core.prompts import PromptTemplate
 
 from langsmith import traceable
 # Import Thí sinh từ config
-from config import llm_target
+import config
 
 # Mượn lại Prompt và Schema cấu trúc của Evaluator để đảm bảo format đầu ra giống nhau
 from evaluator.eval_prompts import gen_fact_problem_prompt
@@ -46,7 +46,7 @@ def target_llm_node(state: dict):
     # Ép Thí sinh cũng phải trả về đúng chuẩn [Verdict] + Justification
     # (Nếu Thí sinh là Black-box API không hỗ trợ Structured Output,
     # ta sẽ phải dùng Regex để bóc tách text tĩnh ở đây)
-    chain = PromptTemplate.from_template(gen_fact_problem_prompt) | llm_target.with_structured_output(ReferenceOutput)
+    chain = PromptTemplate.from_template(gen_fact_problem_prompt) | config.llm_target.with_structured_output(ReferenceOutput)
 
     try:
         res = chain.invoke({"question": question_context})

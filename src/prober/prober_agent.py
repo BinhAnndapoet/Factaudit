@@ -11,7 +11,7 @@ from langchain_core.prompts import PromptTemplate
 from pydantic import BaseModel, Field
 
 # Nhớ dùng llm_explorer (temp=1.0) để Prober có sức sáng tạo đi săn mìn
-from config import llm_explorer
+import config
 from .prober_prompt import deep_search_prompt
 
 from langsmith import traceable
@@ -119,7 +119,7 @@ def prober_node(state: dict):
         history_str += f"Score: {j.get('score', '')}\n\n"
 
     # 3. Gọi LLM sinh câu hỏi xoắn não hơn
-    prober = llm_explorer.with_structured_output(TestCase)
+    prober = config.llm_explorer.with_structured_output(TestCase)
     chain = PromptTemplate.from_template(deep_search_prompt) | prober
 
     try:

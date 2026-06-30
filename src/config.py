@@ -515,24 +515,21 @@ def get_max_context_size() -> int:
 
 
 # ==========================================
-# AUTO-INITIALIZATION ON MODULE IMPORT
+# INITIALIZATION (EXPLICIT — KHÔNG auto-init khi import)
 # ==========================================
-
-# Khi module được import, tự động initialize LLMs
-# dựa trên config từ .env (hoặc mode được passed từ main.py)
-_initialized = False
-
-
-def ensure_initialized(mode: Optional[str] = None):
-    """Ensure LLM instances are initialized."""
-    global _initialized
-
-    if not _initialized or (mode is not None and get_factory().mode != mode):
-        initialize_llms(mode=mode)
-        _initialized = True
-
-
-# Auto-initialize on first import (sẽ được override bởi main.py nếu có --mode argument)
-if not _initialized:
-    initialize_llms()
-    _initialized = True
+# TRƯỚC ĐÂY: module tự gọi initialize_llms() ngay khi import (mode=auto ->
+# baseline do USE_TURBOQUANT=false). Điều này gây bug "tham chiếu cũ":
+#   - Các agent viết `from config import llm_judge` -> chụp object BASELINE
+#     (port 8080) ngay tại lúc import.
+#   - Khi main.py SAU ĐÓ gọi initialize_llms(mode="turboquant") gán lại biến
+#     global config.llm_judge, các agent vẫn giữ object CŨ -> turboquant vô
+#     tình gọi server baseline 8080 (không chạy) -> "Connection error.".
+#
+# GIỜ: bỏ auto-init. Việc khởi tạo LLM phải tường minh qua:
+#   - main.py     : initialize_llms(mode=...)  (chạy TRƯỚC khi stream graph)
+#   - runtime     : switch_llm_mode(new_mode)
+# Các agent đọc LLM tại call-time qua `config.llm_*` (đã sửa trong src/*/),
+# nên luôn thấy instance đúng với mode hiện hành, bất kể thứ tự import.
+#
+# LƯU Ý: sau khi bỏ auto-init, các global llm_explorer/llm_judge/llm_scorer/
+# llm_target là None cho tới khi có lời gọi initialize_llms() / switch_llm_mode().

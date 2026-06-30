@@ -1,4 +1,4 @@
-(turboquant) guest@Sekiro:~/Projects/ban/Factaudit$ python src/main.py --mode turboquant
+python src/main.py --mode turboquant
 ┌────────────────────────────────────────────────────────────────────────────┐
 │  ╔═════════════════════════════════════════════════════════════════════╗   │
 │     ║           FACT-AUDIT: Automated Fact-Checking Auditor          ║     │

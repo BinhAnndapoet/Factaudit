@@ -11,7 +11,8 @@ from typing import Literal
 from langchain_core.prompts import PromptTemplate
 from langgraph.graph import StateGraph, START, END
 
-from config import llm_explorer, llm_judge, MAX_RETRIES
+import config
+from config import MAX_RETRIES
 from .appraiser_state import AppraiserState, AnalysisOutput, JudgeOutput
 from .appraiser_prompts import analysis_prompt, judge_new_task_prompt
 from langsmith import traceable
@@ -29,7 +30,7 @@ def analyze_node(state: AppraiserState):
 
     print(f"\n[Appraiser] Analyzing taxonomy for: {state.get('main_task', 'Unknown')}...")
 
-    analyzer = llm_explorer.with_structured_output(AnalysisOutput)
+    analyzer = config.llm_explorer.with_structured_output(AnalysisOutput)
     prompt = PromptTemplate.from_template(analysis_prompt)
     chain = prompt | analyzer
 
@@ -60,7 +61,7 @@ def judge_node(state: AppraiserState):
 
     print(f"[Judge] Evaluating proposed task: {state.get('current_new_task')}...")
 
-    judger = llm_judge.with_structured_output(JudgeOutput)
+    judger = config.llm_judge.with_structured_output(JudgeOutput)
     prompt = PromptTemplate.from_template(judge_new_task_prompt)
     chain = prompt | judger
 

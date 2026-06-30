@@ -8,7 +8,7 @@ Evaluator Agent Graph Definition (Phase 1 & Phase 2)
 from langchain_core.prompts import PromptTemplate
 from langgraph.graph import StateGraph, START, END
 
-from config import llm_explorer, llm_judge, llm_scorer
+import config
 from .eval_state import Phase1State, ReferenceOutput, VoteOutput, RefineOutput, ScoreOutput
 from .eval_prompts import gen_fact_problem_prompt, gen_vote_prompt, judge_ref_answer_prompt, get_llm_score_prompt
 from langsmith import traceable
@@ -39,7 +39,7 @@ def gen_ref_1_node(state: Phase1State):
     question_context = _build_question_context(claim, aux_info)
 
     # CHÚ Ý: Đã đổi llm_explorer thành llm_judge (temp=0.0) theo đúng source code
-    chain = PromptTemplate.from_template(gen_fact_problem_prompt) | llm_judge.with_structured_output(ReferenceOutput)
+    chain = PromptTemplate.from_template(gen_fact_problem_prompt) | config.llm_judge.with_structured_output(ReferenceOutput)
     res = chain.invoke({"question": question_context})
     return {"ref_ans_1": f"[{res.verdict}] {res.justification}"}
 
@@ -47,7 +47,7 @@ def gen_ref_2_node(state: Phase1State):
     claim, aux_info, _, _ = _extract_prompt_data(state["current_case"])
     question_context = _build_question_context(claim, aux_info)
 
-    chain = PromptTemplate.from_template(gen_fact_problem_prompt) | llm_judge.with_structured_output(ReferenceOutput)
+    chain = PromptTemplate.from_template(gen_fact_problem_prompt) | config.llm_judge.with_structured_output(ReferenceOutput)
     res = chain.invoke({"question": question_context})
     return {"ref_ans_2": f"[{res.verdict}] {res.justification}"}
 
@@ -55,7 +55,7 @@ def gen_ref_3_node(state: Phase1State):
     claim, aux_info, _, _ = _extract_prompt_data(state["current_case"])
     question_context = _build_question_context(claim, aux_info)
 
-    chain = PromptTemplate.from_template(gen_fact_problem_prompt) | llm_judge.with_structured_output(ReferenceOutput)
+    chain = PromptTemplate.from_template(gen_fact_problem_prompt) | config.llm_judge.with_structured_output(ReferenceOutput)
     res = chain.invoke({"question": question_context})
     return {"ref_ans_3": f"[{res.verdict}] {res.justification}"}
 
@@ -66,7 +66,7 @@ def vote_node(state: Phase1State):
     claim, aux_info, _, _ = _extract_prompt_data(state["current_case"])
     question_context = f"Claim: {claim}\nContext: {aux_info}"
 
-    chain = PromptTemplate.from_template(gen_vote_prompt) | llm_judge.with_structured_output(VoteOutput)
+    chain = PromptTemplate.from_template(gen_vote_prompt) | config.llm_judge.with_structured_output(VoteOutput)
     res = chain.invoke({
         "question": question_context,
         "ref_1": state["ref_ans_1"],
@@ -83,7 +83,7 @@ def refine_node(state: Phase1State):
     claim, aux_info, key_point, _ = _extract_prompt_data(state["current_case"])
     prompt_context = f"Claim: {claim}\nContext: {aux_info}"
 
-    chain = PromptTemplate.from_template(judge_ref_answer_prompt) | llm_judge.with_structured_output(RefineOutput)
+    chain = PromptTemplate.from_template(judge_ref_answer_prompt) | config.llm_judge.with_structured_output(RefineOutput)
     res = chain.invoke({
         "answer": state["voted_answer"],
         "prompt": prompt_context,
@@ -130,7 +130,7 @@ def evaluator_phase2_score_node(state: dict):
     target_response = state.get("target_response", "")
     reference_answer = state.get("reference_answer", "")
 
-    chain = PromptTemplate.from_template(get_llm_score_prompt) | llm_scorer.with_structured_output(ScoreOutput)
+    chain = PromptTemplate.from_template(get_llm_score_prompt) | config.llm_scorer.with_structured_output(ScoreOutput)
 
     res: ScoreOutput = chain.invoke({
         "question": question_context,

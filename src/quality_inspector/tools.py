@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 # from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_tavily import TavilySearch
 from langchain_core.prompts import PromptTemplate
-from config import llm_judge
+import config
 from .inspector_prompts import verification_prompt
 from langsmith import traceable
 
@@ -70,7 +70,7 @@ def advanced_web_check(test_case: dict) -> Tuple[bool, str]:
             web_results_str = str(docs) # Dự phòng nếu dữ liệu vẫn là chuỗi thuần
 
         # Use the Judge LLM to cross-reference evidence with web facts
-        verifier = llm_judge.with_structured_output(WebVerification)
+        verifier = config.llm_judge.with_structured_output(WebVerification)
         prompt = PromptTemplate.from_template(verification_prompt)
 
         print("[WebTool] Evaluating evidence against search results...")

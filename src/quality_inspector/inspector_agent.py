@@ -3,7 +3,8 @@ from typing import Literal
 from langchain_core.prompts import PromptTemplate
 from langgraph.graph import StateGraph, START, END
 
-from config import llm_judge, MAX_RETRIES
+import config
+from config import MAX_RETRIES
 from .inspector_state import InspectorState, InspectionOutput
 from .inspector_prompts import judge_new_case_prompt
 from .tools import advanced_web_check
@@ -66,7 +67,7 @@ def llm_inspection_node(state: InspectorState):
         if "prompt" in current_case and "auxiliary_info" in current_case["prompt"]:
             del current_case["prompt"]["auxiliary_info"]
 
-    inspector = llm_judge.with_structured_output(InspectionOutput)
+    inspector = config.llm_judge.with_structured_output(InspectionOutput)
     prompt = PromptTemplate.from_template(judge_new_case_prompt)
     chain = prompt | inspector
 

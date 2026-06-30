@@ -13,7 +13,8 @@ from langgraph.graph import StateGraph, START, END
 
 from langsmith import traceable
 
-from config import llm_judge, MAX_RETRIES
+import config
+from config import MAX_RETRIES
 from .inquirer_state import InquirerState, InquirerOutput
 from .inquirer_prompts import gen_seed_prompt
 
@@ -28,7 +29,7 @@ def generate_seed_node(state: InquirerState):
     print(f"\n[Inquirer] Generating seed data for scenario: {task_name} (Attempt {state.get('retry_count', 0) + 1})...")
 
     # Use the deterministic LLM (temp=0.0) with strictly structured output
-    generator = llm_judge.with_structured_output(InquirerOutput)
+    generator = config.llm_judge.with_structured_output(InquirerOutput)
     prompt = PromptTemplate.from_template(gen_seed_prompt)
     chain = prompt | generator
 
