@@ -29,4 +29,5 @@ httpx>=0.27.0
 # transformers
 # accelerate
 # langchain-huggingface
-langsmith 
+langsmith
+filelock
