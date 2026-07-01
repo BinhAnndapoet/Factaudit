@@ -213,7 +213,7 @@ LOGS=/home/guest/Projects/ban/Factaudit/logs
   --threads 8 --n-gpu-layers 35 \
   --ctx-size 8192 --batch-size 512 --ubatch-size 128 \
   --cache-type-k f32 --cache-type-v f32 \
-  --metrics --log-format text > "$LOGS/server_a_baseline.log" 2>&1 &
+  --metrics
 
 # Model B (target) — baseline, port 8082
 ./bin/llama-server \
@@ -222,7 +222,7 @@ LOGS=/home/guest/Projects/ban/Factaudit/logs
   --threads 8 --n-gpu-layers 35 \
   --ctx-size 8192 --batch-size 512 --ubatch-size 128 \
   --cache-type-k f32 --cache-type-v f32 \
-  --metrics --log-format text > "$LOGS/server_b_baseline.log" 2>&1 &
+  --metrics 
 ```
 
 > Các tham số này khớp 100% với `start_server.sh baseline`. Bỏ `&` và `> ...` nếu muốn xem log trực tiếp trên terminal. Để chuyển sang TurboQuant, đổi các cờ theo [§7 — Cách 2](#7-chạy-theo-mode-turboquant).
@@ -279,8 +279,7 @@ LOGS=/home/guest/Projects/ban/Factaudit/logs
   --threads 8 --n-gpu-layers 35 \
   --ctx-size 32768 --batch-size 1024 --ubatch-size 256 \
   --cache-type-k turbo3 --cache-type-v turbo4 \
-  --turbo-quant-bits 4 --turbo-group-size 64 \
-  --metrics --log-format text > "$LOGS/server_a_turbo.log" 2>&1 &
+  --metrics 
 
 # Model B (target) — turboquant, port 8083
 ./bin/llama-server \
@@ -289,8 +288,7 @@ LOGS=/home/guest/Projects/ban/Factaudit/logs
   --threads 8 --n-gpu-layers 35 \
   --ctx-size 32768 --batch-size 1024 --ubatch-size 256 \
   --cache-type-k turbo3 --cache-type-v turbo4 \
-  --turbo-quant-bits 4 --turbo-group-size 64 \
-  --metrics --log-format text > "$LOGS/server_b_turbo.log" 2>&1 &
+  --metrics 
 ```
 
 > Các cờ `--cache-type-k/v` và `--turbo-quant-*` là của bản fork `llama-cpp-turboquant` (bản `llama.cpp` chính gốc không có) → bắt buộc phải build đúng repo anh em.
