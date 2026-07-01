@@ -1,0 +1,167 @@
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│  ╔═════════════════════════════════════════════════════════════════════╗   │
+│     ║           FACT-AUDIT: Automated Fact-Checking Auditor          ║     │
+│   ║                    Multi-Agent LangGraph System                   ║    │
+│  ╚═════════════════════════════════════════════════════════════════════╝   │
+┌────────────────────────────────────────────────────────────────────────────┐
+│                               CONFIGURATION                                │
+┌────────────────────────────────────────────────────────────────────────────┐
+│ Mode:                TURBOQUANT+ (KV Cache Compression)                   │
+│ Log Directory:       logs                                                 │
+│ Verbose:             Disabled                                             │
+┌────────────────────────────────────────────────────────────────────────────┐
+│ API Base:            http://127.0.0.1:8081/v1                             │
+│ Max Context:         32768 tokens                                         │
+┌────────────────────────────────────────────────────────────────────────────┐
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
+
+🚀 BẮT ĐẦU KÍCH HOẠT HỆ THỐNG FACT-AUDIT 🚀
+──────────────────────────────────────────────────────────────────────────────
+
+[Inquirer] Generating seed data for scenario: Health and Medical Fake News (Attempt 1)...
+[Inquirer] Successfully generated 10 test cases.
+
+[Main] Đang Fan-out 10 test cases vào Evaluation Workflow...
+
+✅ [Node Hoàn Thành]: INQUIRER_NODE
+   -> Đã sinh 10 seed cases. Đang đẩy vào Evaluation Subgraph...
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [evidence]...
+[WebTool] Searching Tavily for: 'VitaCure, a herbal supplement, can cure Alzheimer's disease in 30 days without medical supervision. 1. According to the National Institute on Aging (NIA), no herbal supplement has been proven to cure '...
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [wisdom of crowds]...
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [claim]...
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [evidence]...
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [wisdom of crowds]...
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [claim]...
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [evidence]...
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [wisdom of crowds]...
+[WebTool] Searching Tavily for: 'A nasal spray called 'MigraCure' can cure chronic migraines in 2 weeks. 1. The FDA has not approved MigraCure for migraine treatment. 2. A 2023 Cochrane review found no cli'...
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [claim]...
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [evidence]...
+
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+[WebTool] Searching Tavily for: 'A gene-editing therapy called 'CRISPR-Cure' can cure sickle cell anemia in 100% of patients. 1. The FDA approved CRISPR-Cure in 2023 for sickle cell anemia, but with 85% efficacy in trials. 2. '...[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+[WebTool] Searching Tavily for: 'A new vaccine called 'FluGuard' can prevent all flu strains in 2024. 1. The CDC states that no vaccine can prevent all flu strains due to viral mutations. 2. A 2023 WHO '...
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[LLM Inspector] Đang thẩm định tính hợp lệ...[LLM Inspector] Đang thẩm định tính hợp lệ...
+
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[WebTool] Evaluating evidence against search results...
+[WebTool] Evaluating evidence against search results...
+[WebTool] Evaluating evidence against search results...
+[WebTool] Evaluating evidence against search results...
+[LLM Inspector] Case đạt chuẩn! Tiếp tục tới Target LLM & Evaluator.
+
+[Target LLM] Thí sinh đang giải bài tập...
+[LLM Inspector] Vi phạm quy tắc. Feedback: The test case violates criterion 3b) as the 'auxiliary_info' lacks a conversation tree with depth greater than two. The user comments are presented as flat, non-interactive statements rather than a threaded conversation with replies and nested discussions.
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [wisdom of crowds]...
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[LLM Inspector] Vi phạm quy tắc. Feedback: The test case fails criterion 3a and 3b for the [wisdom of crowds] test mode. While the auxiliary_info contains valuable user comments, the depth of the conversation tree is not explicitly represented as a structured tree with multiple layers (e.g., replies to replies). The current format shows a flat list of comments rather than a hierarchical propagation tree. Additionally, the depth requirement (random integer >2) is not quantified in the test case.
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [wisdom of crowds]...
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[LLM Inspector] Vi phạm quy tắc. Feedback: The test case fails criterion 3b for the 'wisdom of crowds' test mode. The auxiliary_info contains four separate user comments but does not form a conversation tree with a depth greater than two. The comments are presented as isolated statements rather than a nested dialogue thread with replies to previous comments.
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [wisdom of crowds]...
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[LLM Inspector] Case đạt chuẩn! Tiếp tục tới Target LLM & Evaluator.
+
+[Target LLM] Thí sinh đang giải bài tập...
+[LLM Inspector] Vi phạm quy tắc. Feedback: The key_point lacks specificity by omitting the supplement's name ('IQBoost') from the source claim. The key_point should mirror the source claim's details to ensure unambiguous specificity. Additionally, the test_mode is [claim], but the key_point does not fully align with the source claim's exact wording.
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [claim]...
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[Inspector] Phát hiện ảo giác so với thực tế mạng!
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[Inspector] Phát hiện ảo giác so với thực tế mạng!
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[Inspector] Phát hiện ảo giác so với thực tế mạng!
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[Inspector] Phát hiện ảo giác so với thực tế mạng!
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[Target LLM] Đã trả lời xong! Verdict: Non-Factual
+
+[Phase 1] Đang biểu quyết (Voting) 3 luồng...
+[LLM Inspector] Vi phạm quy tắc. Feedback: The test case violates criterion 3b) as the 'auxiliary_info' lacks a conversation tree with depth greater than two. The user comments are presented as flat, non-interactive statements rather than a threaded conversation with replies and nested discussions. The comments should be structured hierarchically to show the conversation flow (e.g., replies nested under their parent comments).
+[Warning] Quá số lần retry ở Inspector. Cho qua với lỗi bảo lưu.
+
+[Target LLM] Thí sinh đang giải bài tập...
+[Target LLM] Đã trả lời xong! Verdict: Non-Factual
+[LLM Inspector] Vi phạm quy tắc. Feedback: The test case violates criterion 3b for 'wisdom of crowds' mode. The auxiliary_info contains isolated statements rather than a conversation tree with depth >2. The comments lack nested dialogue structure required for crowd wisdom analysis.
+[Warning] Quá số lần retry ở Inspector. Cho qua với lỗi bảo lưu.
+
+[Target LLM] Thí sinh đang giải bài tập...
+
+[Phase 1] Đang biểu quyết (Voting) 3 luồng...
+Traceback (most recent call last):
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/site-packages/langgraph/pregel/main.py", line 2982, in stream
+    for _ in runner.tick(
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/site-packages/langgraph/pregel/_runner.py", line 283, in tick
+    done, inflight = concurrent.futures.wait(
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/concurrent/futures/_base.py", line 307, in wait
+    waiter.event.wait(timeout)
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/threading.py", line 607, in wait
+    signaled = self._cond.wait(timeout)
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/threading.py", line 320, in wait
+    waiter.acquire()
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/guest/Projects/ban/Factaudit/src/main.py", line 449, in <module>
+    main()
+  File "/home/guest/Projects/ban/Factaudit/src/main.py", line 442, in main
+    run_fact_audit(args)
+  File "/home/guest/Projects/ban/Factaudit/src/main.py", line 354, in run_fact_audit
+    for event in master_graph.stream(initial_state, config=config):
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/site-packages/langgraph/pregel/main.py", line 2914, in stream
+    with SyncPregelLoop(
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/site-packages/langgraph/pregel/_loop.py", line 1695, in __exit__
+    return self.stack.__exit__(exc_type, exc_value, traceback)
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/contextlib.py", line 576, in __exit__
+    raise exc_details[1]
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/contextlib.py", line 561, in __exit__
+    if cb(*exc_details):
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/site-packages/langgraph/pregel/_executor.py", line 107, in __exit__
+    concurrent.futures.wait(pending)
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/concurrent/futures/_base.py", line 307, in wait
+    waiter.event.wait(timeout)
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/threading.py", line 607, in wait
+    signaled = self._cond.wait(timeout)
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/threading.py", line 320, in wait
+    waiter.acquire()
+KeyboardInterrupt
+Exception ignored in: <module 'threading' from '/home/guest/miniconda3/envs/turboquant/lib/python3.10/threading.py'>
+Traceback (most recent call last):
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/threading.py", line 1537, in _shutdown
+    atexit_call()
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/concurrent/futures/thread.py", line 31, in _python_exit
+    t.join()
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/threading.py", line 1096, in join
+    self._wait_for_tstate_lock()
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/threading.py", line 1116, in _wait_for_tstate_lock
+    if lock.acquire(block, timeout):
+KeyboardInterrupt: 

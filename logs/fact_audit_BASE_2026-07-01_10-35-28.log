@@ -1,0 +1,138 @@
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│  ╔═════════════════════════════════════════════════════════════════════╗   │
+│     ║           FACT-AUDIT: Automated Fact-Checking Auditor          ║     │
+│   ║                    Multi-Agent LangGraph System                   ║    │
+│  ╚═════════════════════════════════════════════════════════════════════╝   │
+┌────────────────────────────────────────────────────────────────────────────┐
+│                               CONFIGURATION                                │
+┌────────────────────────────────────────────────────────────────────────────┐
+│ Mode:                BASELINE (Q8_0/FP16)                                 │
+│ Log Directory:       logs                                                 │
+│ Verbose:             Disabled                                             │
+┌────────────────────────────────────────────────────────────────────────────┐
+│ API Base:            http://127.0.0.1:8080/v1                             │
+│ Max Context:         8192 tokens                                          │
+┌────────────────────────────────────────────────────────────────────────────┐
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
+
+🚀 BẮT ĐẦU KÍCH HOẠT HỆ THỐNG FACT-AUDIT 🚀
+──────────────────────────────────────────────────────────────────────────────
+
+[Inquirer] Generating seed data for scenario: Health and Medical Fake News (Attempt 1)...
+[Inquirer] Successfully generated 10 test cases.
+
+[Main] Đang Fan-out 10 test cases vào Evaluation Workflow...
+
+✅ [Node Hoàn Thành]: INQUIRER_NODE
+   -> Đã sinh 10 seed cases. Đang đẩy vào Evaluation Subgraph...
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [wisdom of crowds]...
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [evidence]...
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [claim]...
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+[WebTool] Searching Tavily for: 'Vitamin D supplements reduce heart disease risk by 70% in all demographics, according to a 2023 study. Evidence1: 'A 2023 meta-analysis in the Journal of the American Heart Association found vitamin D su'...
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [wisdom of crowds]...
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [evidence]...
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [wisdom of crowds]...
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [evidence]...
+
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [claim]...
+[WebTool] Searching Tavily for: 'A ketogenic diet reverses Type 1 diabetes in 6 weeks, as shown by a 2023 study. Evidence1: 'A 2023 study in the Journal of Clinical Endocrinology & Metabolism found no evidence tha'...
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [evidence]...
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [wisdom of crowds]...
+
+[WebTool] Searching Tavily for: 'A 2023 study found that 5G radiation causes brain cancer. Evidence1: 'The World Health Organization (WHO) states: 'No consistent evidence links 5G radiation t'...
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+[WebTool] Searching Tavily for: 'A 2023 study found that drinking green tea daily prevents Alzheimer’s disease in all age groups. Evidence1: 'A 2023 study in Neurology found green tea consumption may reduce Alzheimer’s risk by 20%'...
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[LLM Inspector] Đang thẩm định tính hợp lệ...[LLM Inspector] Đang thẩm định tính hợp lệ...
+
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[WebTool] Evaluating evidence against search results...
+[WebTool] Evaluating evidence against search results...
+[WebTool] Evaluating evidence against search results...
+[WebTool] Evaluating evidence against search results...
+[LLM Inspector] Case đạt chuẩn! Tiếp tục tới Target LLM & Evaluator.
+
+[Target LLM] Thí sinh đang giải bài tập...
+[LLM Inspector] Case đạt chuẩn! Tiếp tục tới Target LLM & Evaluator.
+
+[Target LLM] Thí sinh đang giải bài tập...
+[LLM Inspector] Vi phạm quy tắc. Feedback: The test case violates criterion 3b: the 'wisdom of crowds' mode requires a conversation tree with depth >2 (i.e., multiple layers of user responses). The current auxiliary_info contains only flat, non-interactive user comments without any branching conversation structure.
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [wisdom of crowds]...
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+Traceback (most recent call last):
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/site-packages/langgraph/pregel/main.py", line 2982, in stream
+    for _ in runner.tick(
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/site-packages/langgraph/pregel/_runner.py", line 283, in tick
+    done, inflight = concurrent.futures.wait(
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/concurrent/futures/_base.py", line 307, in wait
+    waiter.event.wait(timeout)
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/threading.py", line 607, in wait
+    signaled = self._cond.wait(timeout)
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/threading.py", line 320, in wait
+    waiter.acquire()
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/guest/Projects/ban/Factaudit/src/main.py", line 449, in <module>
+    main()
+  File "/home/guest/Projects/ban/Factaudit/src/main.py", line 442, in main
+    run_fact_audit(args)
+  File "/home/guest/Projects/ban/Factaudit/src/main.py", line 354, in run_fact_audit
+    for event in master_graph.stream(initial_state, config=config):
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/site-packages/langgraph/pregel/main.py", line 2914, in stream
+    with SyncPregelLoop(
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/site-packages/langgraph/pregel/_loop.py", line 1695, in __exit__
+    return self.stack.__exit__(exc_type, exc_value, traceback)
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/contextlib.py", line 576, in __exit__
+    raise exc_details[1]
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/contextlib.py", line 561, in __exit__
+    if cb(*exc_details):
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/site-packages/langgraph/pregel/_executor.py", line 107, in __exit__
+    concurrent.futures.wait(pending)
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/concurrent/futures/_base.py", line 307, in wait
+    waiter.event.wait(timeout)
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/threading.py", line 607, in wait
+    signaled = self._cond.wait(timeout)
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/threading.py", line 320, in wait
+    waiter.acquire()
+KeyboardInterrupt
+[LLM Inspector] Vi phạm quy tắc. Feedback: The test case violates criterion 3b: the 'auxiliary_info' lacks a conversation tree with depth greater than two. The current user comments are standalone statements without hierarchical interaction (e.g., replies to previous comments). The 'wisdom of crowds' mode requires a propagation tree structure with multiple levels of engagement.
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [wisdom of crowds]...
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[WebTool] Error during web search or LLM verification: Connection error.
+[Inspector] Phát hiện ảo giác so với thực tế mạng!
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[WebTool] Error during web search or LLM verification: Connection error.
+[Inspector] Phát hiện ảo giác so với thực tế mạng!
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[Target LLM] Thí sinh gặp lỗi (Timeout/Format): Connection error.
+[WebTool] Error during web search or LLM verification: Connection error.
+[Inspector] Phát hiện ảo giác so với thực tế mạng!
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[WebTool] Error during web search or LLM verification: Connection error.
+[Inspector] Phát hiện ảo giác so với thực tế mạng!
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[Target LLM] Thí sinh gặp lỗi (Timeout/Format): Connection error.

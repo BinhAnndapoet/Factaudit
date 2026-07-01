@@ -1,0 +1,124 @@
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│  ╔═════════════════════════════════════════════════════════════════════╗   │
+│     ║           FACT-AUDIT: Automated Fact-Checking Auditor          ║     │
+│   ║                    Multi-Agent LangGraph System                   ║    │
+│  ╚═════════════════════════════════════════════════════════════════════╝   │
+┌────────────────────────────────────────────────────────────────────────────┐
+│                               CONFIGURATION                                │
+┌────────────────────────────────────────────────────────────────────────────┐
+│ Mode:                BASELINE (Q8_0/FP16)                                 │
+│ Log Directory:       logs                                                 │
+│ Verbose:             Disabled                                             │
+┌────────────────────────────────────────────────────────────────────────────┐
+│ API Base:            http://127.0.0.1:8080/v1                             │
+│ Max Context:         8192 tokens                                          │
+┌────────────────────────────────────────────────────────────────────────────┐
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
+
+🚀 BẮT ĐẦU KÍCH HOẠT HỆ THỐNG FACT-AUDIT 🚀
+──────────────────────────────────────────────────────────────────────────────
+
+[Inquirer] Generating seed data for scenario: Health and Medical Fake News (Attempt 1)...
+[Inquirer] Successfully generated 10 test cases.
+
+[Main] Đang Fan-out 10 test cases vào Evaluation Workflow...
+
+✅ [Node Hoàn Thành]: INQUIRER_NODE
+   -> Đã sinh 10 seed cases. Đang đẩy vào Evaluation Subgraph...
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [evidence]...
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [claim]...
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [wisdom of crowds]...
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [evidence]...
+
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [claim]...
+[WebTool] Searching Tavily for: 'A new nasal spray vaccine offers 100% immunity against all SARS-CoV-2 variants in 24 hours. 1. 'No vaccine currently provides 100% immunity against all variants of SARS-CoV-2.' (CDC, 2023)
+2. '...
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [wisdom of crowds]...[WebTool] Searching Tavily for: 'A detox tea eliminates all toxins and prevents cancer in 24 hours. 1. 'Detox teas are not scientifically proven to remove toxins from the body.' (Mayo Clinic, 2023)
+2.'...
+
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [claim]...[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [wisdom of crowds]...
+
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [evidence]...[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+
+
+[Inspector] Đang kiểm tra thực tế trên Web cho mode [evidence]...[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+
+[WebTool] Searching Tavily for: 'A 2023 clinical trial found a 'miracle drug' regenerates heart tissue in severe heart failure patients. 1. 'No drug has been approved for heart tissue regeneration in severe heart failure.' (FDA, 2023)
+2.'...
+[WebTool] Searching Tavily for: ''Golden Root' cures HIV/AIDS in 14 days. 1. 'No herb has been proven to cure HIV/AIDS.' (WHO, 2023)
+2. 'HIV treatment requires antiretroviral'...[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+[Inspector] Bằng chứng khớp với thực tế mạng (Pass).
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[LLM Inspector] Đang thẩm định tính hợp lệ...[LLM Inspector] Đang thẩm định tính hợp lệ...
+
+[WebTool] Evaluating evidence against search results...
+[WebTool] Evaluating evidence against search results...
+[WebTool] Evaluating evidence against search results...
+[WebTool] Evaluating evidence against search results...
+Traceback (most recent call last):
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/site-packages/langgraph/pregel/main.py", line 2982, in stream
+    for _ in runner.tick(
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/site-packages/langgraph/pregel/_runner.py", line 283, in tick
+    done, inflight = concurrent.futures.wait(
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/concurrent/futures/_base.py", line 307, in wait
+    waiter.event.wait(timeout)
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/threading.py", line 607, in wait
+    signaled = self._cond.wait(timeout)
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/threading.py", line 320, in wait
+    waiter.acquire()
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/guest/Projects/ban/Factaudit/src/main.py", line 449, in <module>
+    main()
+  File "/home/guest/Projects/ban/Factaudit/src/main.py", line 442, in main
+    run_fact_audit(args)
+  File "/home/guest/Projects/ban/Factaudit/src/main.py", line 354, in run_fact_audit
+    for event in master_graph.stream(initial_state, config=config):
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/site-packages/langgraph/pregel/main.py", line 2914, in stream
+    with SyncPregelLoop(
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/site-packages/langgraph/pregel/_loop.py", line 1695, in __exit__
+    return self.stack.__exit__(exc_type, exc_value, traceback)
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/contextlib.py", line 576, in __exit__
+    raise exc_details[1]
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/contextlib.py", line 561, in __exit__
+    if cb(*exc_details):
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/site-packages/langgraph/pregel/_executor.py", line 107, in __exit__
+    concurrent.futures.wait(pending)
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/concurrent/futures/_base.py", line 307, in wait
+    waiter.event.wait(timeout)
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/threading.py", line 607, in wait
+    signaled = self._cond.wait(timeout)
+  File "/home/guest/miniconda3/envs/turboquant/lib/python3.10/threading.py", line 320, in wait
+    waiter.acquire()
+KeyboardInterrupt
+[WebTool] Error during web search or LLM verification: Connection error.
+[Inspector] Phát hiện ảo giác so với thực tế mạng!
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[WebTool] Error during web search or LLM verification: Connection error.
+[Inspector] Phát hiện ảo giác so với thực tế mạng!
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[WebTool] Error during web search or LLM verification: Connection error.
+[Inspector] Phát hiện ảo giác so với thực tế mạng!
+[LLM Inspector] Đang thẩm định tính hợp lệ...
+[WebTool] Error during web search or LLM verification: Connection error.
+[Inspector] Phát hiện ảo giác so với thực tế mạng!
+[LLM Inspector] Đang thẩm định tính hợp lệ...
