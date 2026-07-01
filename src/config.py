@@ -1,23 +1,31 @@
 """
 ===============================================
-FACT-AUDIT Configuration Module  (v2 - No Ollama)
+FACT-AUDIT Configuration Module  (v3 - Dual Model)
 ===============================================
 Module này quản lý việc khởi tạo LLM instances và hỗ trợ
 chuyển đổi (switching) giữa 2 chế độ:
 - Baseline Mode: Không có TurboQuant (f32 cache)
 - TurboQuant+ Mode: Có KV Cache Compression (turbo3/turbo4)
 
-THAY ĐỔI LỚN (v2):
-- Đã LOẠ BỎ HOÀN TOÀN dependency Ollama (langchain_ollama / ChatOllama
-  / ENABLE_OLLAMA_FALLBACK / OLLAMA_*).
-- Model giờ được tải trực tiếp về máy dưới dạng file GGUF trong thư mục
-  Factaudit/models/ (ví dụ: models/Qwen3-14B-Q8_0.gguf) và được serve bởi
-  server `llama-cpp-turboquant` qua giao thức OpenAI-compatible.
-- Client (Factaudit) CHỈ giao tiếp với server qua REST API (ChatOpenAI);
-  toàn bộ logic load/nén KV cache nằm trong server, không còn trong Factaudit.
+THAY ĐỔI LỚN (v3 - Dual Model):
+- Hệ thống giờ dùng 2 MODEL ĐỘC LẬP, mỗi model đều có đủ 2 chế độ
+  (baseline + turboquant) => cần 4 server llama-cpp-turboquant:
+    * Model A (5 agent):  Qwen3-32B-Q8_0.gguf  -> baseline:8080 / turboquant:8081
+    * Model B (Target):   Qwen3-14B-Q8_0.gguf  -> baseline:8082 / turboquant:8083
+- 5 agent (Appraiser, Inquirer, Quality Inspector, Evaluator, Prober)
+  luôn dùng Model A (explorer/judge/scorer). Target Model dùng Model B
+  (llm_target) — hoàn toàn độc lập với các agent.
+- MODE-SWITCHING LÀ TOÀN CỤC: một tham số --mode (baseline|turboquant)
+  flip cả Model A và Model B cùng lúc. Không có mode riêng từng model.
+
+(Trừ thay đổi trên, phần còn lại giữ nguyên như v2: đã LOẠI BỎ hoàn toàn
+dependency Ollama. Model được tải về máy dưới dạng file GGUF trong thư mục
+Factaudit/models/ và được serve bởi server llama-cpp-turboquant qua giao
+thức OpenAI-compatible. Client (Factaudit) chỉ giao tiếp qua REST API.)
 
 Cấu trúc:
 - LLMFactory: Factory pattern tạo LLM instances dựa trên mode (baseline|turboquant)
+  với 2 model config (model_a cho agent, model_b cho target)
 - Global Constants: Các hằng số sử dụng trong hệ thống
 """
 
@@ -41,11 +49,9 @@ load_dotenv()
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 # Thư mục chứa các file model GGUF tải trực tiếp về máy
 MODELS_DIR = PROJECT_ROOT / "models"
-# Tên file GGUF mặc định (có thể override qua env GGUF_MODEL_FILE / GGUF_MODEL_PATH)
-DEFAULT_GGUF_FILE = "Qwen3-14B-Q8_0.gguf"
 
 
-def resolve_gguf_model_path() -> Path:
+def resolve_gguf_model_path(gguf_file: Optional[str] = None) -> Path:
     """
     Resolve đường dẫn tuyệt đối của file model GGUF trong Factaudit/models/.
 
@@ -53,32 +59,76 @@ def resolve_gguf_model_path() -> Path:
     server sử dụng. Client không trực tiếp load file này (server đã load rồi).
 
     Priority (cao -> thấp):
-    1. GGUF_MODEL_PATH  : đường dẫn tuyệt đối/relative chỉ định trực tiếp
-    2. GGUF_MODEL_FILE  : tên file .gguf nằm trong MODELS_DIR
-    3. Scan MODELS_DIR   : file *.gguf đầu tiên tìm được (sắp xếp theo tên)
-    4. Fallback          : DEFAULT_GGUF_FILE trong MODELS_DIR
+    1. gguf_file arg     : tên file .gguf (thường được truyền từ config dict
+                           của từng model). Nếu được truyền, ưu tiên cao nhất.
+    2. GGUF_MODEL_PATH   : đường dẫn tuyệt đối/relative chỉ định trực tiếp
+    3. GGUF_MODEL_FILE   : tên file .gguf nằm trong MODELS_DIR
+    4. Scan MODELS_DIR    : file *.gguf đầu tiên tìm được (sắp xếp theo tên)
+    5. Fallback           : DEFAULT_GGUF_FILE trong MODELS_DIR
 
     Returns:
         Path tới file GGUF (path luôn trả về, dù file có thể chưa tồn tại).
     """
-    # 1. Đường dẫn trực tiếp (ưu tiên cao nhất)
+    # 1. Tên file truyền vào trực tiếp (ưu tiên cao nhất) — dùng cho model_a/model_b
+    if gguf_file:
+        return (MODELS_DIR / gguf_file).resolve()
+
+    # 2. Đường dẫn tuyệt đối (env override)
     explicit = os.getenv("GGUF_MODEL_PATH")
     if explicit:
         return Path(explicit).expanduser()
 
-    # 2. Tên file nằm trong thư mục models/
+    # 3. Tên file nằm trong thư mục models/
     model_file = os.getenv("GGUF_MODEL_FILE")
     if model_file:
         return (MODELS_DIR / model_file).resolve()
 
-    # 3. Scan thư mục models/ lấy file .gguf đầu tiên
+    # 4. Scan thư mục models/ lấy file .gguf đầu tiên
     if MODELS_DIR.is_dir():
         gguf_files = sorted(MODELS_DIR.glob("*.gguf"))
         if gguf_files:
             return gguf_files[0].resolve()
 
-    # 4. Fallback mặc định
-    return (MODELS_DIR / DEFAULT_GGUF_FILE).resolve()
+    # 5. Fallback mặc định
+    return (MODELS_DIR / "Qwen3-14B-Q8_0.gguf").resolve()
+
+
+# ==========================================
+# MODEL ROLE IDENTIFIERS
+# ==========================================
+MODEL_ROLE_A = "model_a"  # Dùng cho 5 agent (explorer / judge / scorer)
+MODEL_ROLE_B = "model_b"  # Dùng cho Target Model (llm_target)
+
+
+def _load_model_cfg(
+    prefix: str,
+    default_alias: str,
+    default_baseline_url: str,
+    default_turbo_url: str,
+    default_gguf: str,
+) -> dict:
+    """
+    Load cấu hình của 1 model từ biến môi trường (theo prefix).
+
+    Mỗi model có 4 trường:
+    - alias:        nhãn gửi trong field `model` của request (phải khớp --alias server)
+    - gguf_file:    tên file .gguf nằm trong Factaudit/models/
+    - baseline_url: endpoint server baseline (cache f32)
+    - turbo_url:    endpoint server turboquant (cache turbo3/turbo4)
+
+    Args:
+        prefix: "MODEL_A" hoặc "MODEL_B"
+        default_*: giá trị mặc định khi env chưa set
+
+    Returns:
+        dict cấu hình model
+    """
+    return {
+        "alias": os.getenv(f"{prefix}_ALIAS", default_alias),
+        "gguf_file": os.getenv(f"{prefix}_GGUF_FILE", default_gguf),
+        "baseline_url": os.getenv(f"{prefix}_BASELINE_API_BASE", default_baseline_url),
+        "turbo_url": os.getenv(f"{prefix}_TURBOQUANT_API_BASE", default_turbo_url),
+    }
 
 
 # ==========================================
@@ -86,19 +136,22 @@ def resolve_gguf_model_path() -> Path:
 # ==========================================
 class LLMFactory:
     """
-    Factory Pattern để tạo LLM instances với mode switching.
+    Factory Pattern để tạo LLM instances với mode switching + 2 model độc lập.
 
-    Hỗ trợ 2 chế độ:
-    - "baseline":   Trỏ tới Baseline Server   (port 8080, cache f32)
-    - "turboquant": Trỏ tới TurboQuant+ Server (port 8081, cache turbo3/turbo4)
+    Hỗ trợ 2 chế độ mode (TOÀN CỤC, áp dụng cho cả 2 model):
+    - "baseline":   Trỏ tới Baseline Server   (cache f32)
+    - "turboquant": Trỏ tới TurboQuant+ Server (cache turbo3/turbo4)
 
-    Cả 2 chế độ đều tạo ra ChatOpenAI instance trỏ tới BASELINE_API_BASE
-    hoặc TURBOQUANT_API_BASE (theo .env). Không còn fallback Ollama.
+    Và 2 model config:
+    - model_a: dùng cho create_explorer / create_judge / create_scorer (5 agent)
+    - model_b: dùng cho create_target (Target Model)
+
+    Endpoint thực tế = chọn baseline_url/turbo_url của model tương ứng theo mode.
 
     Usage:
         factory = LLMFactory(mode="turboquant")
-        llm_explorer = factory.create_explorer()
-        llm_judge = factory.create_judge()
+        llm_explorer = factory.create_explorer()   # -> Model A turboquant (8081)
+        llm_target = factory.create_target()       # -> Model B turboquant (8083)
     """
 
     def __init__(self, mode: Optional[Literal["baseline", "turboquant", "auto"]] = None):
@@ -106,22 +159,31 @@ class LLMFactory:
         Khởi tạo LLMFactory.
 
         Args:
-            mode: Chế độ LLM inference
+            mode: Chế độ LLM inference (TOÀN CỤC, áp dụng cho cả Model A & B)
                 - "baseline":   Force dùng Baseline mode
                 - "turboquant": Force dùng TurboQuant+ mode
                 - "auto":       Tự động quyết định dựa trên USE_TURBOQUANT từ .env
                 - None:         Giống như "auto"
         """
         self._mode = self._determine_mode(mode)
-        self._api_base = self._get_api_base()
-        # MODEL_NAME chỉ là nhãn gửi trong field `model` của request (informational
-        # với llama.cpp server). Nên đặt bằng alias của server (thường là tên file
-        # GGUF không kèm đuôi) để /v1/models khớp.
-        self._model_name = os.getenv("MODEL_NAME", "Qwen3-14B-Q8_0")
         self._api_key = os.getenv("API_KEY", "sk-not-required")
         self._timeout = int(os.getenv("TIMEOUT", "300"))
-        # Đường dẫn GGUF để log/thông báo cho người dùng
-        self._gguf_path = resolve_gguf_model_path()
+
+        # Load cấu hình 2 model độc lập từ env
+        self._model_a = _load_model_cfg(
+            "MODEL_A",
+            default_alias="Qwen3-32B-Q8_0",
+            default_baseline_url="http://127.0.0.1:8080/v1",
+            default_turbo_url="http://127.0.0.1:8081/v1",
+            default_gguf="Qwen3-32B-Q8_0.gguf",
+        )
+        self._model_b = _load_model_cfg(
+            "MODEL_B",
+            default_alias="Qwen3-14B-Q8_0",
+            default_baseline_url="http://127.0.0.1:8082/v1",
+            default_turbo_url="http://127.0.0.1:8083/v1",
+            default_gguf="Qwen3-14B-Q8_0.gguf",
+        )
 
         # Print mode info
         self._print_mode_info()
@@ -148,19 +210,16 @@ class LLMFactory:
         use_turbo = os.getenv("USE_TURBOQUANT", "false").lower() == "true"
         return "turboquant" if use_turbo else "baseline"
 
-    def _get_api_base(self) -> str:
+    def _endpoint_for(self, cfg: dict) -> str:
         """
-        Lấy API endpoint dựa trên mode đã xác định.
+        Lấy API endpoint của 1 model dựa trên mode hiện tại (toàn cục).
 
-        - turboquant -> TURBOQUANT_API_BASE (mặc định http://localhost:8081/v1)
-        - baseline   -> BASELINE_API_BASE   (mặc định http://localhost:8080/v1)
+        - turboquant -> cfg["turbo_url"]
+        - baseline   -> cfg["baseline_url"]
         """
         if self._mode == "turboquant":
-            api_base = os.getenv("TURBOQUANT_API_BASE", "http://localhost:8081/v1")
-        else:
-            api_base = os.getenv("BASELINE_API_BASE", "http://localhost:8080/v1")
-
-        return api_base
+            return cfg["turbo_url"]
+        return cfg["baseline_url"]
 
     @staticmethod
     def _truncate(text: str, width: int = 50) -> str:
@@ -170,64 +229,114 @@ class LLMFactory:
             return text
         return "..." + text[-(width - 3):]
 
+    def _gguf_status(self, gguf_file: str) -> tuple:
+        """
+        Tính đường dẫn + trạng thái file GGUF của 1 model (cho log/hiển thị).
+
+        Returns:
+            (path: Path, status_str: str)
+        """
+        gguf_path = resolve_gguf_model_path(gguf_file)
+        if gguf_path.exists():
+            status = f"found ({gguf_path.stat().st_size / (1024 ** 3):.1f} GB)"
+        else:
+            status = "NOT FOUND - server có thể không load được"
+        return gguf_path, status
+
     def _print_mode_info(self):
-        """In thông tin mode + đường dẫn file GGUF ra terminal để user tracking."""
+        """In thông tin mode + cấu hình 2 model ra terminal để user tracking."""
         mode_display = "TurboQuant+ (KV Cache Compression)" if self._mode == "turboquant" else "Baseline (f32 cache)"
 
-        # Kiểm tra file GGUF có tồn tại không (chỉ để cảnh báo, không block)
-        if self._gguf_path.exists():
-            gguf_status = f"found ({self._gguf_path.stat().st_size / (1024 ** 3):.1f} GB)"
-        else:
-            gguf_status = "NOT FOUND - server có thể không load được"
+        path_a, status_a = self._gguf_status(self._model_a["gguf_file"])
+        path_b, status_b = self._gguf_status(self._model_b["gguf_file"])
+        base_a = self._endpoint_for(self._model_a)
+        base_b = self._endpoint_for(self._model_b)
 
         print(f"┌" + "─" * 70 + "┐")
-        print(f"│ {'LLM FACTORY INITIALIZED':^66} │")
+        print(f"│ {'LLM FACTORY INITIALIZED (2 models)':^66} │")
         print(f"├" + "─" * 70 + "┤")
-        print(f"│ Mode:        {self._truncate(mode_display):<50} │")
-        print(f"│ API Base:    {self._truncate(self._api_base):<50} │")
-        print(f"│ Model Alias: {self._truncate(self._model_name):<50} │")
-        print(f"│ GGUF File:   {self._truncate(self._gguf_path.name):<50} │")
-        print(f"│ GGUF Path:   {self._truncate(self._gguf_path, 50):<50} │")
-        print(f"│ GGUF Status: {self._truncate(gguf_status):<50} │")
+        print(f"│ {'Mode:':<12}{self._truncate(mode_display):<56} │")
+        print(f"├" + "─" * 70 + "┤")
+        print(f"│ {'MODEL A (5 agent):':<70} │")
+        print(f"│ {'Alias:':<12}{self._truncate(self._model_a['alias']):<56} │")
+        print(f"│ {'API Base:':<12}{self._truncate(base_a):<56} │")
+        print(f"│ {'GGUF File:':<12}{self._truncate(path_a.name):<56} │")
+        print(f"│ {'GGUF Path:':<12}{self._truncate(path_a, 56):<56} │")
+        print(f"│ {'GGUF Status:':<12}{self._truncate(status_a):<56} │")
+        print(f"├" + "─" * 70 + "┤")
+        print(f"│ {'MODEL B (Target):':<70} │")
+        print(f"│ {'Alias:':<12}{self._truncate(self._model_b['alias']):<56} │")
+        print(f"│ {'API Base:':<12}{self._truncate(base_b):<56} │")
+        print(f"│ {'GGUF File:':<12}{self._truncate(path_b.name):<56} │")
+        print(f"│ {'GGUF Path:':<12}{self._truncate(path_b, 56):<56} │")
+        print(f"│ {'GGUF Status:':<12}{self._truncate(status_b):<56} │")
 
         # Print context size based on mode
         if self._mode == "turboquant":
             ctx_size = os.getenv("TURBOQUANT_CONTEXT_SIZE", "32768")
-            print(f"│ Max Context: {self._truncate(ctx_size + ' tokens (4x capacity)'):<50} │")
+            print(f"│ {'Max Context:':<12}{self._truncate(ctx_size + ' tokens (4x capacity)'):<56} │")
         else:
             ctx_size = os.getenv("MAX_CONTEXT_SIZE", "8192")
-            print(f"│ Max Context: {self._truncate(ctx_size + ' tokens'):<50} │")
+            print(f"│ {'Max Context:':<12}{self._truncate(ctx_size + ' tokens'):<56} │")
 
         print(f"└" + "─" * 70 + "┘")
 
     @property
     def mode(self) -> str:
-        """Get current mode."""
+        """Get current mode (toàn cục, áp dụng cho cả Model A & B)."""
         return self._mode
 
     @property
     def api_base(self) -> str:
-        """Get current API endpoint."""
-        return self._api_base
+        """Get API endpoint của Model A (5 agent) theo mode hiện tại."""
+        return self._endpoint_for(self._model_a)
+
+    @property
+    def api_base_target(self) -> str:
+        """Get API endpoint của Model B (Target) theo mode hiện tại."""
+        return self._endpoint_for(self._model_b)
+
+    @property
+    def alias_a(self) -> str:
+        """Get alias của Model A (5 agent)."""
+        return self._model_a["alias"]
+
+    @property
+    def alias_b(self) -> str:
+        """Get alias của Model B (Target)."""
+        return self._model_b["alias"]
+
+    @property
+    def gguf_path_a(self) -> Path:
+        """Get resolved GGUF path của Model A (for logging/display)."""
+        return resolve_gguf_model_path(self._model_a["gguf_file"])
+
+    @property
+    def gguf_path_b(self) -> Path:
+        """Get resolved GGUF path của Model B (for logging/display)."""
+        return resolve_gguf_model_path(self._model_b["gguf_file"])
 
     @property
     def gguf_path(self) -> Path:
-        """Get resolved GGUF model file path (for logging/display)."""
-        return self._gguf_path
+        """Deprecated: alias của gguf_path_a (giữ cho tương thích ngược)."""
+        return self.gguf_path_a
 
     def switch_mode(self, new_mode: Literal["baseline", "turboquant"]) -> None:
         """
-        Switch runtime mode và update API endpoint.
+        Switch runtime mode (toàn cục) cho cả Model A & B.
+
+        Endpoint của từng model được derive on-demand từ mode, nên chỉ cần
+        cập nhật self._mode (không cần cache _api_base).
 
         Args:
             new_mode: "baseline" hoặc "turboquant"
         """
         old_mode = self._mode
         self._mode = new_mode
-        self._api_base = self._get_api_base()
 
         print(f"\n🔄 [LLMFactory] Mode switched: {old_mode.upper()} → {new_mode.upper()}")
-        print(f"   New API Base: {self._api_base}\n")
+        print(f"   Model A (agents): {self._endpoint_for(self._model_a)}")
+        print(f"   Model B (target): {self._endpoint_for(self._model_b)}\n")
 
     # ==========================================
     # LLM CREATION METHODS
@@ -235,17 +344,19 @@ class LLMFactory:
 
     def _create_base_llm(
         self,
+        cfg: dict,
         temperature: float,
         max_tokens: Optional[int] = None,
         format: Optional[str] = None
     ) -> ChatOpenAI:
         """
-        Tạo base ChatOpenAI instance với cấu hình chung.
+        Tạo base ChatOpenAI instance cho 1 model cụ thể (cfg) + mode hiện tại.
 
-        Instance này trỏ tới API endpoint (BASELINE_API_BASE hoặc
-        TURBOQUANT_API_BASE) tuỳ theo mode hiện tại của factory.
+        Instance trỏ tới endpoint của model đó (baseline_url hoặc turbo_url)
+        tuỳ theo mode toàn cục của factory.
 
         Args:
+            cfg: dict cấu hình model (_model_a hoặc _model_b)
             temperature: Temperature cho generation
             max_tokens: Maximum tokens (optional)
             format: Output format ("json" hoặc None)
@@ -263,7 +374,7 @@ class LLMFactory:
 
         # Build kwargs
         kwargs = {
-            "model": self._model_name,
+            "model": cfg["alias"],
             "temperature": temperature,
             "max_tokens": max_tokens,
             "api_key": self._api_key,
@@ -276,7 +387,7 @@ class LLMFactory:
         #  calling mà with_structured_output() sử dụng -> cố tình bỏ qua.)
         _ = format
 
-        return ChatOpenAI(base_url=self._api_base, **kwargs)
+        return ChatOpenAI(base_url=self._endpoint_for(cfg), **kwargs)
 
     def _create_fallback_gemini(
         self,
@@ -311,29 +422,29 @@ class LLMFactory:
         )
 
     # ------------------------------------------
-    # EXPLORER LLM (Appraiser, Prober, Evaluator Phase 1)
+    # EXPLORER LLM (Appraiser, Prober, Evaluator Phase 1) -> MODEL A
     # ------------------------------------------
     def create_explorer(self) -> ChatOpenAI:
         """
-        Tạo Explorer LLM.
+        Tạo Explorer LLM (Model A).
 
         Usage: Appraiser, Prober, Evaluator Phase 1
         Yêu cầu: Nhiệt độ cao (1.0) để tạo kịch bản mới lạ, sáng tạo
         """
         temp = float(os.getenv("TEMPERATURE_EXPLORER", "1.0"))
 
-        llm = self._create_base_llm(temperature=temp)
+        llm = self._create_base_llm(self._model_a, temperature=temp)
 
-        print(f"  ✓ llm_explorer created (temp={temp})")
+        print(f"  ✓ llm_explorer created (Model A, temp={temp})")
 
         return llm
 
     # ------------------------------------------
-    # JUDGE LLM (Inquirer, Quality Inspector)
+    # JUDGE LLM (Inquirer, Quality Inspector) -> MODEL A
     # ------------------------------------------
     def create_judge(self, format: Optional[str] = "json") -> ChatOpenAI:
         """
-        Tạo Judge LLM.
+        Tạo Judge LLM (Model A).
 
         Usage: Inquirer, Quality Inspector, Internal Judge
         Yêu cầu: Nhiệt độ thấp (0.0) để đảm bảo tính chính xác, công bằng
@@ -344,45 +455,45 @@ class LLMFactory:
         """
         temp = float(os.getenv("TEMPERATURE_JUDGE", "0.0"))
 
-        llm = self._create_base_llm(temperature=temp, format=format)
+        llm = self._create_base_llm(self._model_a, temperature=temp, format=format)
 
-        print(f"  ✓ llm_judge created (temp={temp}, format={format})")
+        print(f"  ✓ llm_judge created (Model A, temp={temp}, format={format})")
 
         return llm
 
     # ------------------------------------------
-    # SCORER LLM (Evaluator Phase 2)
+    # SCORER LLM (Evaluator Phase 2) -> MODEL A
     # ------------------------------------------
     def create_scorer(self) -> ChatOpenAI:
         """
-        Tạo Scorer LLM.
+        Tạo Scorer LLM (Model A).
 
         Usage: Evaluator Phase 2
         Yêu cầu: Nhiệt độ thấp (0.0) để đánh giá nhất quán
         """
         temp = float(os.getenv("TEMPERATURE_SCORER", "0.0"))
 
-        llm = self._create_base_llm(temperature=temp)
+        llm = self._create_base_llm(self._model_a, temperature=temp)
 
-        print(f"  ✓ llm_scorer created (temp={temp})")
+        print(f"  ✓ llm_scorer created (Model A, temp={temp})")
 
         return llm
 
     # ------------------------------------------
-    # TARGET LLM (Model Under Test)
+    # TARGET LLM (Model Under Test) -> MODEL B
     # ------------------------------------------
     def create_target(self) -> ChatOpenAI:
         """
-        Tạo Target LLM.
+        Tạo Target LLM (Model B - hoàn toàn độc lập với các agent).
 
         Usage: Mô hình bị kiểm toán
         Yêu cầu: Nhiệt độ trung bình (0.6) để simulate user behavior
         """
         temp = float(os.getenv("TEMPERATURE_TARGET", "0.6"))
 
-        llm = self._create_base_llm(temperature=temp)
+        llm = self._create_base_llm(self._model_b, temperature=temp)
 
-        print(f"  ✓ llm_target created (temp={temp})")
+        print(f"  ✓ llm_target created (Model B, temp={temp})")
 
         return llm
 
@@ -392,6 +503,8 @@ class LLMFactory:
     def create_all(self) -> dict:
         """
         Tạo tất cả LLM instances và return dưới dạng dict.
+
+        explorer/judge/scorer -> Model A; target -> Model B.
 
         Returns:
             dict với keys: 'explorer', 'judge', 'scorer', 'target'
@@ -416,8 +529,7 @@ Các LLM instances sẽ được tạo khi first access,
 dựa trên mode được xác định tại thời điểm đó.
 
 Để switch mode runtime:
-1. Gọi LLMFactory(mode="new_mode") để tạo factory mới
-2. Re-assign các global LLM instances
+1. Gọi switch_llm_mode(new_mode) (mode toàn cục, flip cả Model A & B)
 """
 
 # Global factory instance (lazy loaded)
@@ -450,13 +562,14 @@ def get_factory(mode: Optional[str] = None) -> LLMFactory:
 
 def initialize_llms(mode: Optional[str] = None) -> dict:
     """
-    Initialize tất cả LLM instances với mode specified.
+    Initialize tất cả LLM instances với mode specified (toàn cục).
 
     Args:
         mode: "baseline", "turboquant", hoặc None (use .env config)
 
     Returns:
-        dict với các LLM instances
+        dict với các LLM instances (explorer/judge/scorer -> Model A,
+        target -> Model B)
     """
     global llm_explorer, llm_judge, llm_scorer, llm_target
 
@@ -474,7 +587,8 @@ def initialize_llms(mode: Optional[str] = None) -> dict:
 
 def switch_llm_mode(new_mode: Literal["baseline", "turboquant"]) -> None:
     """
-    Switch runtime mode và reinitialize tất cả LLM instances.
+    Switch runtime mode (toàn cục) và reinitialize tất cả LLM instances.
+    Mode flip áp dụng cho cả Model A (agent) và Model B (target).
 
     Args:
         new_mode: "baseline" hoặc "turboquant"
@@ -482,7 +596,7 @@ def switch_llm_mode(new_mode: Literal["baseline", "turboquant"]) -> None:
     global _llm_factory
 
     print(f"\n{'='*70}")
-    print(f"🔄 SWITCHING LLM MODE TO: {new_mode.upper()}")
+    print(f"🔄 SWITCHING LLM MODE TO: {new_mode.upper()}  (Model A + Model B)")
     print(f"{'='*70}\n")
 
     # Reset factory
@@ -504,9 +618,9 @@ MAX_WEB_CHECKS = 2           # Số lần tối đa được phép quay lại we
 LOW_SCORE_THRESHOLD = 3.0    # Ngưỡng điểm để xếp một test case vào loại "Bad Case" (dành cho Evaluator)
 MAX_ITERATIONS = 3           # Số vòng lặp tối đa của Prober (Iterative Probing) theo bài báo
 
-# Context Size Settings (dynamically based on mode)
+# Context Size Settings (dynamically based on mode — chung cho cả 2 model)
 def get_max_context_size() -> int:
-    """Lấy max context size dựa trên current mode."""
+    """Lấy max context size dựa trên current mode (chung cho cả Model A & B)."""
     factory = get_factory()
     if factory.mode == "turboquant":
         return int(os.getenv("TURBOQUANT_CONTEXT_SIZE", "32768"))
@@ -517,17 +631,9 @@ def get_max_context_size() -> int:
 # ==========================================
 # INITIALIZATION (EXPLICIT — KHÔNG auto-init khi import)
 # ==========================================
-# TRƯỚC ĐÂY: module tự gọi initialize_llms() ngay khi import (mode=auto ->
-# baseline do USE_TURBOQUANT=false). Điều này gây bug "tham chiếu cũ":
-#   - Các agent viết `from config import llm_judge` -> chụp object BASELINE
-#     (port 8080) ngay tại lúc import.
-#   - Khi main.py SAU ĐÓ gọi initialize_llms(mode="turboquant") gán lại biến
-#     global config.llm_judge, các agent vẫn giữ object CŨ -> turboquant vô
-#     tình gọi server baseline 8080 (không chạy) -> "Connection error.".
-#
-# GIỜ: bỏ auto-init. Việc khởi tạo LLM phải tường minh qua:
+# Việc khởi tạo LLM phải tường minh qua:
 #   - main.py     : initialize_llms(mode=...)  (chạy TRƯỚC khi stream graph)
-#   - runtime     : switch_llm_mode(new_mode)
+#   - runtime     : switch_llm_mode(new_mode)   (flip cả Model A & B)
 # Các agent đọc LLM tại call-time qua `config.llm_*` (đã sửa trong src/*/),
 # nên luôn thấy instance đúng với mode hiện hành, bất kể thứ tự import.
 #

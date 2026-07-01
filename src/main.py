@@ -278,10 +278,11 @@ def print_banner(args):
 
         if current_mode == "auto":
             print(f"│ {'Actual Mode:':<20} {factory.mode.upper() + ' mode':<52} │")
-            print(f"│ {'API Base:':<20} {factory.api_base:<52} │")
-        else:
-            print(f"│ {'API Base:':<20} {factory.api_base:<52} │")
 
+        # Hệ thống 2 model độc lập: Model A (5 agent) + Model B (Target).
+        # Mode-switching là toàn cục -> cùng một mode áp dụng cho cả hai.
+        print(f"│ {'Model A (agents):':<20} {factory.alias_a + ' @ ' + factory.api_base:<52} │")
+        print(f"│ {'Model B (target):':<20} {factory.alias_b + ' @ ' + factory.api_base_target:<52} │")
         print(f"│ {'Max Context:':<20} {f'{get_max_context_size()} tokens':<52} │")
         print(f"{separator}")
     except Exception as e:

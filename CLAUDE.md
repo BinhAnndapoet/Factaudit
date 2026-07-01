@@ -9,16 +9,24 @@ FACT-AUDIT is an automated framework for evaluating LLM fact-checking capabiliti
 ## Running the System
 
 ```bash
-# Run the main fact audit evaluation
-python src/main.py
+# 1. Start the llama-cpp-turboquant servers (dual-model: A + B)
+./scripts/start_server.sh baseline      # A-baseline(8080) + B-baseline(8082)
+#   --mode turboquant run instead: ./scripts/start_server.sh turboquant
+#   Granular / low-VRAM: model-a | model-b | a-turbo | b-turbo | both
+
+# 2. Run the main fact audit evaluation (mode must match the servers you started)
+python src/main.py                      # auto mode from .env
+python src/main.py --mode baseline      # force Baseline
+python src/main.py --mode turboquant    # force TurboQuant+
 
 # Visualize the graph architecture (exports to img/fact_audit_architecture.png)
 python src/visualize_graph.py
 ```
 
 **Required Setup:**
-- Set `GEMINI_API_KEY` in `.env` file (or use Ollama which is pre-configured)
-- For Ollama: Ensure `llama3.1` model is pulled and running locally
+- Two GGUF model files in `models/`: **Model A** `Qwen3-32B-Q8_0.gguf` (5 agents) and **Model B** `Qwen3-14B-Q8_0.gguf` (target). Configure paths/aliases/ports in `.env` (`MODEL_A_*`, `MODEL_B_*`).
+- Build the `llama-server` binary from the sibling repo `llama-cpp-turboquant` (default path `../llama-cpp-turboquant/build/bin/llama-server`), or set `LLAMA_SERVER_BIN`.
+- Set `TAVILY_API_KEY` in `.env` (required for `web_check_node`). `GEMINI_API_KEY` is optional (cloud fallback only).
 - Logs are automatically written to `logs/` with timestamps
 
 ## Architecture
@@ -54,13 +62,20 @@ python src/visualize_graph.py
 
 ### LLM Configuration (src/config.py)
 
-Four specialized LLM instances:
-- `llm_explorer` (temp=1.0) - For Appraiser, Prober, Evaluator Phase 1
-- `llm_judge` (temp=0.0) - For Inquirer, Quality Inspector, internal judgments
-- `llm_scorer` (temp=0.0) - For Evaluator Phase 2
-- `llm_target` (temp=0.6) - The model under test
+The system uses **two independent models**, each served in two modes (4 `llama-cpp-turboquant` servers total). Mode-switching (Baseline / TurboQuant+) is **global** — one `--mode` flips both models together.
 
-Default uses Ollama with `llama3.1`. To switch to Google Gemini, uncomment the Gemini blocks in config.py.
+| Role | Model (GGUF) | Baseline | TurboQuant+ | Used by |
+|------|--------------|----------|-------------|---------|
+| **Model A** | `Qwen3-32B-Q8_0.gguf` | port 8080 (f32) | port 8081 (turbo3/turbo4) | the 5 agents |
+| **Model B** | `Qwen3-14B-Q8_0.gguf` | port 8082 (f32) | port 8083 (turbo3/turbo4) | the target model under test |
+
+Four LLM roles map onto these models:
+- `llm_explorer` (Model A, temp=1.0) - Appraiser, Prober, Evaluator Phase 1
+- `llm_judge` (Model A, temp=0.0) - Inquirer, Quality Inspector, internal judgments
+- `llm_scorer` (Model A, temp=0.0) - Evaluator Phase 2
+- `llm_target` (Model B, temp=0.6) - the model under test (fully independent of the agents)
+
+`LLMFactory` (singleton via `get_factory`) holds the global mode + two model config dicts (`_model_a` / `_model_b`). Agents read `config.llm_*` at call-time, so `initialize_llms(mode=...)` / `switch_llm_mode(new_mode)` re-point every role transparently. Google Gemini remains available as an optional cloud fallback (`_create_fallback_gemini`) when `GEMINI_API_KEY` is set.
 
 ### Key Constants
 
